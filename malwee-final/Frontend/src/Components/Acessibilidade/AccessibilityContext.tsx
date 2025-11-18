@@ -12,6 +12,7 @@ import React, {
 // --- TRADUÇÕES ---
 const translations = {
   "pt-BR": {
+    filter: "Filtrar",
     dateTime: "Data/Hora",
     machine: "Máquina",
     fabricType: "Tipo de Tecido", 
@@ -276,6 +277,7 @@ const translations = {
     modalFeedbackText: "Encontrou algum problema de acessibilidade? Por favor, nos avise!",
     modalFeedbackPlaceholder: "Descreva o problema que você encontrou...",
     modalFeedbackSubmit: "Enviar",
+    
 
     // NOVAS TRADUÇÕES ADICIONADAS
     home: "Início",
@@ -294,6 +296,8 @@ const translations = {
     malweeLogoAlt: "Logo do Grupo Malwee",
   },
   "en-US": {
+    selectDate: "Select Date",
+    filter: "Filter",
     dateTime: "Date/Time",
     machine: "Machine",
     fabricType: "Fabric Type",

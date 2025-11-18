@@ -32,6 +32,10 @@ ChartJS.register(
 
 const API_URL = "http://localhost:3000";
 
+const getToken = () => {
+  return localStorage.getItem('jwt_token');
+};
+
 const formatarDadosChart = (backendData, label, backgroundColor, borderColor) => {
   if (!backendData || !backendData.labels || !backendData.data) {
     console.warn("Dados do backend inválidos ou ausentes:", backendData);
@@ -123,9 +127,37 @@ export const Dashboard: React.FC = () => {
   const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras', t('stripQuantity'));
 
   useEffect(() => {
+    const token = getToken();
+
+    // Se não tiver token, redireciona para o login imediatamente
+    if (!token) {
+      console.warn("Token não encontrado. Redirecionando...");
+      window.location.href = "/login";
+      return;
+    }
+
+    const handleAuthError = () => {
+      console.error("Sessão expirada ou inválida.");
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('usuario');
+      window.location.href = "/login";
+    };
+
     const fetchData = async (endpoint, setter, label, bg, border) => {
       try {
-        const response = await fetch(`${API_URL}${endpoint}`);
+        const response = await fetch(`${API_URL}${endpoint}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          handleAuthError();
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`Erro ao buscar dados de ${endpoint}`);
         }
@@ -140,7 +172,19 @@ export const Dashboard: React.FC = () => {
     const fetchKpiData = async () => {
       setKpiLoading(true);
       try {
-        const response = await fetch(`${API_URL}/api/kpi-data`);
+        const response = await fetch(`${API_URL}/api/kpi-data`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          handleAuthError();
+          return;
+        }
+
         if (!response.ok) {
           throw new Error('Erro ao buscar dados dos KPIs');
         }

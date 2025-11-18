@@ -17,6 +17,9 @@ export const Login: React.FC = () => {
     setErro("");
     setLoading(true);
 
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('usuario');
+
     try {
       // Altere a URL abaixo se sua API estiver em outra porta ou IP
       const response = await fetch('http://localhost:3000/login', {
@@ -31,7 +34,7 @@ export const Login: React.FC = () => {
 
       if (response.ok) {
         // 1. Salvar o token no localStorage para usar nas outras requisições
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('jwt_token', data.token);
         localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
         // 2. Redirecionar para a Home

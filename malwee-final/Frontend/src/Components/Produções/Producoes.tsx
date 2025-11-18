@@ -6,6 +6,7 @@ import {
   CheckboxBase,
   LabelBase,
   Combobox,
+  ButtonBase,
 } from "@mlw-packages/react-components";
 
 // --- Interfaces para os tipos de dados ---
@@ -54,10 +55,9 @@ export const Producoes: React.FC = () => {
   const [resumo, setResumo] = useState<ResumoData>(initialResumo);
 
   const items = [
-    { label: 'JavaScript', value: 'js' },
-    { label: 'TypeScript', value: 'ts' },
-    { label: 'Python', value: 'py' },
-    { label: 'Java', value: 'java' },
+    { label: 'Malha Tecida', value: 'wovenFabric' },
+    { label: 'Malha de Algodão', value: 'cottonFabric' },
+    { label: 'Malha Sintética', value: 'syntheticFabric' },
   ];
   const [selected, setSelected] = React.useState(items[0].value);
 
@@ -186,17 +186,6 @@ export const Producoes: React.FC = () => {
               onChange={handleChange}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-">
-              <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
-              </LabelBase>
-              <Combobox
-                items={items}
-                selected={selected}
-                onChange={(v) => v !== null && setSelected(v)}
-                label={t('fabricType')}
-              />
-            </div>
-
             <InputBase
               label={t('meterage')}
               placeholder="100"
@@ -204,6 +193,18 @@ export const Producoes: React.FC = () => {
               value={formData.metragem}
               onChange={handleChange}
             />
+
+            {/* Tipo de Tecido - CORRIGIDO */}
+            <div>
+              <LabelBase className="block text-sm font-medium text-[var(--text)] mb-2">
+                {t('fabricType')}
+              </LabelBase>
+              <Combobox
+                items={items}
+                selected={selected}
+                onChange={(v) => v !== null && setSelected(v)}
+              />
+            </div>
 
             <InputBase
               label={t('output')}
@@ -228,10 +229,10 @@ export const Producoes: React.FC = () => {
               </LabelBase>
 
               <div>
-                <label className="text-sm font-medium text-[var(--text)]">
+                <LabelBase className="text-sm font-medium text-[var(--text)]">
                   {t('observations')}
-                </label>
-                <input
+                </LabelBase>
+                <InputBase
                   type="text"
                   placeholder={t('productionNotes')}
                   name="observacoes"
@@ -244,26 +245,26 @@ export const Producoes: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-3 items-center justify-end mt-6">
-            <button
+            <ButtonBase
               onClick={calcularResumo}
               className="px-5 py-2 rounded-lg bg-[var(--accent)] hover:opacity-90 font-medium transition-opacity"
             >
               {t('calculateSummary')}
-            </button>
+            </ButtonBase>
 
-            <button
+            <ButtonBase
               onClick={limparFormulario}
               className="px-5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] border border-[var(--border)] transition-colors"
             >
               {t('clear')}
-            </button>
+            </ButtonBase>
 
-            <button
+            <ButtonBase
               onClick={exportarDados}
               className="px-5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] border border-[var(--border)] transition-colors"
             >
               {t('exportCSV')}
-            </button>
+            </ButtonBase>
           </div>
         </section>
 
@@ -287,7 +288,7 @@ export const Producoes: React.FC = () => {
             detail={t('totalVolumeDetail')}
           />
           <ResumoBox
-            label={t('estimatedCost')} ,
+            label={t('estimatedCost')}
             value={resumo.gastoEstimado.toFixed(1)}
             detail={t('estimatedCostDetail')}
           />

@@ -31,6 +31,10 @@ ChartJS.register(
 
 const API_URL = "http://localhost:3000";
 
+const getToken = () => {
+    return localStorage.getItem('jwt_token');
+};
+
 const formatarDadosChart = (backendData, label, backgroundColor, borderColor) => {
     if (!backendData || !backendData.labels || !backendData.data) {
         return { labels: [], datasets: [] };
@@ -54,7 +58,7 @@ const formatarDadosChart = (backendData, label, backgroundColor, borderColor) =>
 
 export const Graficos: React.FC = () => {
     const { t } = useAccessibility();
-    
+
     const [producaoTempoData, setProducaoTempoData] = useState({ labels: [], datasets: [] });
     const [eficienciaData, setEficienciaData] = useState({ labels: [], datasets: [] });
     const [producaoTecidoData, setProducaoTecidoData] = useState({ labels: [], datasets: [] });
@@ -106,9 +110,36 @@ export const Graficos: React.FC = () => {
     }));
 
     useEffect(() => {
+        const token = getToken();
+
+        if (!token) {
+            console.warn("Token não encontrado. Redirecionando...");
+            window.location.href = "/login";
+            return;
+        }
+
+        const handleAuthError = () => {
+            console.error("Sessão expirada ou inválida.");
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('usuario');
+            window.location.href = "/login";
+        };
+
         const fetchData = async (endpoint, setter, label, bg, border) => {
             try {
-                const response = await fetch(`${API_URL}${endpoint}`);
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    handleAuthError();
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(`Erro ao buscar dados de ${endpoint}`);
                 }
@@ -120,7 +151,7 @@ export const Graficos: React.FC = () => {
             }
         };
 
-        // Requisições para os endpoints EXISTENTES
+        // Requisições para os endpoints 
         fetchData(
             "/api/chart-producao-tempo",
             setProducaoTempoData,
@@ -275,15 +306,15 @@ export const Graficos: React.FC = () => {
                     <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">
                         {t('productionOverTime')}
                     </h3>
-                    <Chart 
-                        data={producaoTempoDataMalwee} 
-                        xAxis="periodo" 
-                        series={{ bar: ['producao'] }} 
-                        labelMap={{ 
+                    <Chart
+                        data={producaoTempoDataMalwee}
+                        xAxis="periodo"
+                        series={{ bar: ['producao'] }}
+                        labelMap={{
                             producao: t('productionMeters')
-                        }} 
-                        colors={["#3b82f6"]} 
-                        height={350} 
+                        }}
+                        colors={["#3b82f6"]}
+                        height={350}
                     />
                 </div>
 
@@ -324,12 +355,12 @@ export const Graficos: React.FC = () => {
                     </h3>
                     <div className="h-[200px]">
                         <Chart
-                            data={sobrasDataMalwee} 
-                            xAxis="periodo" 
-                            series={{ area: ['sobras'] }} 
-                            labelMap={{ sobras: t('rollWaste') }} 
-                            colors={["#06b6d4"]} 
-                            height={200} 
+                            data={sobrasDataMalwee}
+                            xAxis="periodo"
+                            series={{ area: ['sobras'] }}
+                            labelMap={{ sobras: t('rollWaste') }}
+                            colors={["#06b6d4"]}
+                            height={200}
                         />
                     </div>
                 </div>

@@ -376,7 +376,6 @@ export const Relatorio: React.FC = () => {
     });
   }, [data, filters]);
 
-  // Memoiza os dados paginados
   const { paginatedData, totalPages } = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -384,7 +383,7 @@ export const Relatorio: React.FC = () => {
 
     return {
       paginatedData: filteredData.slice(startIndex, endIndex),
-      totalPages: total > 0 ? total : 1, // Garante pelo menos 1 página
+      totalPages: total > 0 ? total : 1,
     };
   }, [filteredData, currentPage, itemsPerPage]);
 
@@ -394,9 +393,7 @@ export const Relatorio: React.FC = () => {
     { label: '3', value: '3' },
   ];
   const [selected, setSelected] = React.useState(items[0].value);
-  // --- Handlers de Eventos ---
 
-  // Handler para mudança nos filtros
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -523,7 +520,7 @@ export const Relatorio: React.FC = () => {
               {t("startDate")}
             </LabelBase>
             <DateTimePicker
-              placeholder={t('selectDate')}
+              placeholder={t("selectDate")}
             />
           </div>
           <div>
@@ -531,7 +528,7 @@ export const Relatorio: React.FC = () => {
               {t("endDate")}
             </LabelBase>
             <DateTimePicker
-              placeholder={t('selectDate')}
+              placeholder={t("selectDate")}
             />
           </div>
           <div>
@@ -539,11 +536,11 @@ export const Relatorio: React.FC = () => {
               {t("machine")}
             </LabelBase>
             <InputBase 
-              label={t('machine')} 
-              placeholder={t('machine')}
+              label='' 
+              placeholder={t("machine")}
             />
           </div>
-          
+
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("fabricType")}
@@ -552,22 +549,21 @@ export const Relatorio: React.FC = () => {
               items={items} 
               selected={selected} 
               onChange={(v) => v !== null && setSelected(v)} 
-              label={t('fabricType')} 
+              label="" 
+              placeholder={t("selectOption")}
+              searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
           <div className="flex items-center gap-6 mt-4">
             <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
               <CheckboxBase
-                id="taskComplete" 
-                data-testid="checkbox-task-complete" 
-              />
+                id="terms" data-testid="checkbox-terms" />
               {t("taskComplete")}
             </LabelBase>
 
             <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
               <CheckboxBase
-                id="rollWaste"
-                data-testid="checkbox-roll-waste"
+                id="terms" data-testid="checkbox-terms"
               />
               {t("rollWaste")}
             </LabelBase>
@@ -576,13 +572,13 @@ export const Relatorio: React.FC = () => {
               onClick={handleClearFilters}
               className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
             >
-              {t('filter')}
+              {t("filter")}
             </ButtonBase>
           </div>
         </form>
 
         <div className="flex justify-end mt-6 gap-3">
-          {/* Botões adicionais se necessário */}
+
         </div>
       </section>
 

@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const app = express();
 const saltRounds = 10;
+const apiRouter = express.Router();
 
 app.use(cors());
 app.use(express.json());
@@ -54,9 +55,10 @@ function authMiddleware(req, res, next) {
     }
 }
 
+apiRouter.use(authMiddleware);
 
 // Gráfico 'Eficiência da máquina (%)'
-app.get('/api/chart-data', async (req, res) => {
+apiRouter.get('/chart-data', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -81,7 +83,7 @@ app.get('/api/chart-data', async (req, res) => {
 });
 
 // Gráfico 'Produção por Tecido'
-app.get('/api/chart-producao-tecido', async (req, res) => {
+apiRouter.get('/chart-producao-tecido', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -103,7 +105,7 @@ app.get('/api/chart-producao-tecido', async (req, res) => {
 });
 
 // Gráfico 'Produção ao Longo do Tempo' 
-app.get('/api/chart-producao-tempo', async (req, res) => {
+apiRouter.get('/chart-producao-tempo', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         let { whereClause, params } = getWhereClause(ano, mes);
@@ -160,7 +162,7 @@ app.get('/api/chart-producao-tempo', async (req, res) => {
 });
 
 // Gráfico 'Produção por Localidade (Máquina)'
-app.get('/api/chart-localidades', async (req, res) => {
+apiRouter.get('/chart-localidades', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -183,7 +185,7 @@ app.get('/api/chart-localidades', async (req, res) => {
 });
 
 // Gráfico 'Sobras de Rolo'
-app.get('/api/chart-sobras', async (req, res) => {
+apiRouter.get('/chart-sobras', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -206,7 +208,7 @@ app.get('/api/chart-sobras', async (req, res) => {
 });
 
 // Gráfico 'Tempo Médio de Setup por Máquina'
-app.get('/api/chart-setup', async (req, res) => {
+apiRouter.get('/chart-setup', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -229,7 +231,7 @@ app.get('/api/chart-setup', async (req, res) => {
 });
 
 // Gráfico 'Distribuição da Quantidade de Tiras'
-app.get('/api/chart-tiras', async (req, res) => {
+apiRouter.get('/chart-tiras', async (req, res) => {
     try {
         const { ano, mes } = req.query;
         const { whereClause, params } = getWhereClause(ano, mes);
@@ -252,7 +254,7 @@ app.get('/api/chart-tiras', async (req, res) => {
 });
 
 //Cards(Dashboard)
-app.get('/api/kpi-data', async (req, res) => {
+apiRouter.get('/kpi-data', async (req, res) => {
     try {
         const kpiQuery = `
             SELECT
@@ -370,6 +372,8 @@ app.post('/login', (req, res) => {
             res.status(status).json({ erro: message })
         });
 });
+
+app.use('/api', apiRouter)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
