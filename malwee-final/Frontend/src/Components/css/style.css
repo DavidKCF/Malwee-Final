@@ -1,0 +1,110 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light Theme */
+  --surface: #f8fafc;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --accent: #8e68ff;
+  --accent2: #b392ff;
+  --verde: #55AF7D;
+  --roxo: #8E68FF;
+  --azul: #2273E1;
+}
+
+.dark {
+  /* Dark Theme */
+  --surface: #1e1e1e;
+  --sidebar: #1a1a1a;
+  --card: #242424;
+  --border: #333333;
+  --text: #e0e0e0;
+  --text-muted: #a3a3a3;
+  --accent: #8e68ff;
+  --accent2: #b392ff;
+}
+
+
+
+html,
+body {
+  background-color: var(--surface);
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+body.high-contrast-dark {
+  --text: #FFFFFF;
+  --text-muted: #CCCCCC;
+  --card: #000000;
+  --surface: #1a1a1a;
+  --border: #FFFFFF;
+  /* Borda bem visível */
+  --accent: #00FFFF;
+  /* Ciano brilhante para destaque */
+}
+
+body.high-contrast-light {
+  --text: #000000;
+  --text-muted: #333333;
+  --card: #FFFFFF;
+  --surface: #EEEEEE;
+  --border: #000000;
+  /* Borda bem visível */
+  --accent: #0000FF;
+  /* Azul forte para destaque */
+}
+
+body.monochrome {
+  filter: grayscale(100%);
+}
+
+.reduce-motion * {
+  /* Força a desativação de animações e transições */
+  animation: none !important;
+  transition: none !important;
+}
+
+body.high-contrast-dark {
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+body.high-contrast-dark * {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+body.high-contrast-light {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+body.high-contrast-light * {
+  background-color: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+.cursor-dark {
+  cursor: url('/malwee-final/Frontend/src/image/cursor-black-click.png'), auto;
+}
+
+body.cursor-dark:active {
+  cursor: url('/malwee-final/Frontend/src/image/cursor-black.png'), auto;
+}

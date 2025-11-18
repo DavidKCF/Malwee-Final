@@ -1,0 +1,44 @@
+===================================
+--ENTRAR NA PASTA BACKEND--
+cd .\backend\
+
+--INICIALIZAR O SERVER--
+npm init -y
+
+--INSTALAR DEPENDÊNCIAS--
+npm install express
+npm install cors
+npm install mysql2
+npm install dotenv
+npm install bcrypt
+
+--COMANDO PARA INSTALAR--
+npm i express cors mysql2 dotenv bcrypt
+
+--COMANDO MYSQL--
+create database malwee;
+use malwee;
+
+select * from data;
+
+ALTER TABLE data
+ADD COLUMN id INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+
+create table usuario(
+	id int primary key auto_increment,
+    nome varchar(100) not null,
+    email varchar(100) not null unique,
+    senha varchar(200) not null
+);
+
+select * from usuario;
+
+--RODAR SERVIDOR--
+node --watch .\server\
+
+===================================
+--ENTRAR NA PASTA FRONTEND(malwee-final)--
+cd .\malwee-final\
+
+--RODAR FRONTEND--
+npm run dev
