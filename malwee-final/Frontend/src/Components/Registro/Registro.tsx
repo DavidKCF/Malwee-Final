@@ -1,13 +1,20 @@
-import React from "react";
+import React, { useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export const Registro: React.FC = () => {
     const navigate = useNavigate();
 
-    const handleCriarConta = () => {
-        // Aqui você pode adicionar lógica de validação do formulário
-        // antes de redirecionar para a home
-        navigate("/home");
+    const [email, setEmail] = useState("");
+    const [nome, setNome] = useState("");
+    const [senha, setSenha] = useState("");
+    const [confirmarSenha, setConfirmarSenha] = useState("");
+    const [erro, setErro] = useState("");
+    const [sucesso, setSucesso] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleCriarConta = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setErro("");
     };
 
     return (
@@ -26,12 +33,12 @@ export const Registro: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm text-[var(--text-muted)] mb-2">
-                                    Matrícula
+                                    E-mail
                                 </label>
                                 <input
                                     type="text"
                                     className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                                    placeholder="Digite sua matrícula"
+                                    placeholder="Digite seu Email"
                                 />
                             </div>
 

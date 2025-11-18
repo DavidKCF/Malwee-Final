@@ -320,6 +320,7 @@ app.post('/registro', (req, res) => {
         });
 });
 
+//Login
 app.post('/login', (req, res) => {
     const { email, senha } = req.body;
 
@@ -354,6 +355,7 @@ app.post('/login', (req, res) => {
 
             res.status(200).json({
                 mensagem: 'Login realizado com sucesso!',
+                token: token,
                 usuario: { id: usuarioEncontrado.id, nome: usuarioEncontrado.nome }
             });
         })
@@ -368,10 +370,6 @@ app.post('/login', (req, res) => {
             res.status(status).json({ erro: message })
         });
 });
-
-
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

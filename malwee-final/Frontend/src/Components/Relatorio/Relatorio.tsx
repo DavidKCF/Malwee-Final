@@ -1,9 +1,26 @@
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
-import { ButtonBase } from '@mlw-packages/react-components';
+import {
+  ButtonBase,
+  InputBase,
+  CheckboxBase,
+  LabelBase,
+  DateTimePicker,
+  Combobox,
+  ModalBase,
+  ModalTriggerBase,
+  ModalContentBase,
+  ModalTitleBase,
+  ModalDescriptionBase,
+  ModalFooterBase,
+  EditButton,
+  VisibilityButton,
+  CloseButton,
+} from "@mlw-packages/react-components";
+
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 
 interface DataItem {
-  data: Date;  
+  data: Date;
   maquina: string;
   tipoTecido: number;
   tipoSaida: number;
@@ -29,7 +46,7 @@ interface Filters {
 // --- Componente Footer (Incluso para ser um arquivo único) ---
 export const Footer: React.FC = () => {
   const { t } = useAccessibility();
-  
+
   return (
     <footer className="mt-8 pt-6 border-t border-[var(--border)] text-center text-sm text-[var(--text-muted)]">
       <p>{t('footerCopyright')}</p>
@@ -175,7 +192,7 @@ const csvDataString = `Data (AAAA-MM-DD HH:MM:SS),Maquina,Tipo Tecido,Tipo de Sa
 // --- Componente Principal Relatorio ---
 export const Relatorio: React.FC = () => {
   const { t } = useAccessibility();
-  
+
   // --- Estados ---
   const [data, setData] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -212,11 +229,11 @@ export const Relatorio: React.FC = () => {
   const parseCSV = (text: string): DataItem[] => {
     try {
       const lines = text.trim().split("\n");
-      
+
       // Remove a linha de cabeçalho
       const headerLine = lines.shift();
       if (!headerLine) return [];
-      
+
       // Mapeia os cabeçalhos para índices para robustez
       const headers = headerLine.split(',').map(h => h.trim());
       const idx = {
@@ -243,13 +260,13 @@ export const Relatorio: React.FC = () => {
       const parsedData: DataItem[] = [];
       for (const line of lines) {
         if (!line.trim()) continue; // Pula linhas vazias
-        
+
         const values = line.split(',');
-        
+
         // Validação básica da linha
         if (values.length < headers.length) {
-            console.warn("Linha do CSV pulada (colunas insuficientes):", line);
-            continue;
+          console.warn("Linha do CSV pulada (colunas insuficientes):", line);
+          continue;
         }
 
         try {
@@ -266,11 +283,11 @@ export const Relatorio: React.FC = () => {
             tarefaCompleta: parseBoolean(values[idx.tarefaCompleta]),
             sobraDeRolo: parseBoolean(values[idx.sobraDeRolo]),
           };
-          
+
           // Validação final (ex: data inválida)
           if (isNaN(item.data.getTime())) {
-             console.warn("Linha do CSV pulada (data inválida):", line);
-             continue;
+            console.warn("Linha do CSV pulada (data inválida):", line);
+            continue;
           }
 
           parsedData.push(item);
@@ -294,18 +311,18 @@ export const Relatorio: React.FC = () => {
     setError(null);
     try {
       const parsedData = parseCSV(csvDataString);
-      
+
       setData(parsedData);
 
       // Extrair opções únicas para os filtros <select>
-        const maquinas = [...new Set(parsedData.map(item => item.maquina).filter(Boolean))];
-        const tecidos = [...new Set(parsedData.map(item => item.tipoTecido))].sort((a, b) => a - b);
-        setMaquinaOptions(maquinas);
+      const maquinas = [...new Set(parsedData.map(item => item.maquina).filter(Boolean))];
+      const tecidos = [...new Set(parsedData.map(item => item.tipoTecido))].sort((a, b) => a - b);
+      setMaquinaOptions(maquinas);
       setTecidoOptions(tecidos);
 
     } catch (e: any) {
-        console.error(e);
-        setError(e.message || t('unknownError'));
+      console.error(e);
+      setError(e.message || t('unknownError'));
     } finally {
       setLoading(false);
     }
@@ -319,7 +336,7 @@ export const Relatorio: React.FC = () => {
 
     return data.filter(item => {
       const s = filters.search.toLowerCase();
-      
+
       // Filtro de Data Início
       if (filters.startDate) {
         const startDate = new Date(filters.startDate + "T00:00:00");
@@ -351,7 +368,7 @@ export const Relatorio: React.FC = () => {
           item.tipoTecido.toString(),
           item.metrosProduzidos.toString()
         ].join(' ').toLowerCase();
-        
+
         if (!searchString.includes(s)) return false;
       }
 
@@ -364,7 +381,7 @@ export const Relatorio: React.FC = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const total = Math.ceil(filteredData.length / itemsPerPage);
-    
+
     return {
       paginatedData: filteredData.slice(startIndex, endIndex),
       totalPages: total > 0 ? total : 1, // Garante pelo menos 1 página
@@ -394,10 +411,10 @@ export const Relatorio: React.FC = () => {
     });
     setCurrentPage(1);
   };
-  
+
   // Handler para mudança na pesquisa
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-     setFilters(prev => ({
+    setFilters(prev => ({
       ...prev,
       search: e.target.value,
     }));
@@ -413,10 +430,10 @@ export const Relatorio: React.FC = () => {
   // Handlers de Exportação
   const handleCopy = () => {
     const headers = [
-      t('date'), t('machine'), t('fabricType'), t('taskNumber'), 
+      t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete')
     ].join('\t');
-    
+
     const tsvRows = filteredData.map(item => [
       item.data.toLocaleString('pt-BR'),
       item.maquina || "-",
@@ -429,10 +446,10 @@ export const Relatorio: React.FC = () => {
     ].join('\t'));
 
     const tsv = [headers, ...tsvRows].join('\n');
-    
+
     try {
       navigator.clipboard.writeText(tsv).then(() => {
-         console.log(t('copiedToClipboard'));
+        console.log(t('copiedToClipboard'));
       }, () => {
         const textArea = document.createElement("textarea");
         textArea.value = tsv;
@@ -454,10 +471,10 @@ export const Relatorio: React.FC = () => {
 
   const handleExportCSV = () => {
     const headers = [
-      t('date'), t('machine'), t('fabricType'), t('taskNumber'), 
+      t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete')
     ];
-    
+
     const csvRows = filteredData.map(item => [
       `"${item.data.toLocaleString('pt-BR')}"`,
       `"${item.maquina || "-"}"`,
@@ -470,7 +487,7 @@ export const Relatorio: React.FC = () => {
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
-    
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -496,39 +513,23 @@ export const Relatorio: React.FC = () => {
         <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">{t('searchFilter')}</h2>
         <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label className="block text-sm text-[var(--text-muted)] mb-2">{t('startDate')}</label>
-            <input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+              {t("dateTime")}
+            </LabelBase>
+            <DateTimePicker
             />
           </div>
           <div>
-            <label className="block text-sm text-[var(--text-muted)] mb-2">{t('endDate')}</label>
-            <input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-              min={filters.startDate}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+              {t("dateTime")}
+            </LabelBase>
+            <DateTimePicker
             />
           </div>
           <div>
-            <label className="block text-sm text-[var(--text-muted)] mb-2">{t('machine')}</label>
-            <select
-              name="maquina"
-              value={filters.maquina}
-              onChange={handleFilterChange}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            >
-              <option value="all">{t('all')}</option>
-              {maquinaOptions.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">{t('machine')}</LabelBase>
+            <InputBase label='Maquina' placeholder='seu@M.com'>
+            </InputBase>
           </div>
           <div>
             <label className="block text-sm text-[var(--text-muted)] mb-2">{t('fabricType')}</label>
@@ -560,7 +561,7 @@ export const Relatorio: React.FC = () => {
         </form>
 
         <div className="flex justify-end mt-6 gap-3">
-          <ButtonBase 
+          <ButtonBase
             onClick={handleClearFilters}
             className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
           >
@@ -575,13 +576,13 @@ export const Relatorio: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
           <div className="flex flex-wrap gap-2">
-            <ButtonBase 
+            <ButtonBase
               onClick={handleCopy}
               className="bg-[var(--surface)] hover:bg-[#8E68FF] hover:text-white px-3 py-2 rounded-lg text-sm border border-[var(--border)] transition-colors text-[var(--text)]"
             >
               {t('copy')}
             </ButtonBase>
-            <ButtonBase 
+            <ButtonBase
               onClick={handleExportCSV}
               className="bg-[var(--surface)] hover:bg-[#8E68FF] hover:text-white px-3 py-2 rounded-lg text-sm border border-[var(--border)] transition-colors text-[var(--text)]"
             >
@@ -622,7 +623,7 @@ export const Relatorio: React.FC = () => {
                   </td>
                 </tr>
               ) : error ? (
-                 <tr className="border-t border-[var(--border)]">
+                <tr className="border-t border-[var(--border)]">
                   <td colSpan={8} className="px-4 py-8 text-center text-red-500">
                     {t('error')}: {error}
                   </td>
@@ -644,11 +645,10 @@ export const Relatorio: React.FC = () => {
                     <td className="px-4 py-3 text-[var(--text)]">{item.tempoProducao}</td>
                     <td className="px-4 py-3 text-[var(--text)]">{item.metrosProduzidos}</td>
                     <td className="px-4 py-3 text-[var(--text)]">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.tarefaCompleta 
-                        ? 'bg-green-100 text-green-800' 
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.tarefaCompleta
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {item.tarefaCompleta ? t('yes') : t('no')}
                       </span>
                     </td>
@@ -662,14 +662,14 @@ export const Relatorio: React.FC = () => {
         {/* Controles de Paginação */}
         <div className="flex flex-col lg:flex-row justify-between items-center mt-6 text-sm text-[var(--text-muted)] gap-4">
           <p>
-            {t('showing')} {paginatedData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} 
-            {' - '} 
-            {(currentPage - 1) * itemsPerPage + paginatedData.length} 
-            {' '}{t('of')}{' '} 
+            {t('showing')} {paginatedData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+            {' - '}
+            {(currentPage - 1) * itemsPerPage + paginatedData.length}
+            {' '}{t('of')}{' '}
             {filteredData.length} {t('records')}
           </p>
           <div className="flex gap-2 items-center">
-            <ButtonBase 
+            <ButtonBase
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1 || loading}
               className="px-3 py-1 rounded-lg hover:text-[var(--accent)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -679,7 +679,7 @@ export const Relatorio: React.FC = () => {
             <span className="text-[var(--text)]">
               {t('page')} {currentPage} {t('of')} {totalPages}
             </span>
-            <ButtonBase 
+            <ButtonBase
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || loading}
               className="px-3 py-1 rounded-lg hover:text-[var(--accent)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

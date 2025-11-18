@@ -13,11 +13,9 @@ import {
   RadialLinearScale,
   Filler
 } from 'chart.js';
-import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
-import { ButtonBase, Chart } from '@mlw-packages/react-components';
+import { Chart } from '@mlw-packages/react-components';
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 
-// Registrando os componentes do Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -55,10 +53,9 @@ const formatarDadosChart = (backendData, label, backgroundColor, borderColor) =>
   };
 };
 
-// --- Componente Footer (Placeholder) ---
 export const Footer: React.FC = () => {
   const { t } = useAccessibility();
-  
+
   return (
     <footer className="mt-8 py-6 text-center text-sm text-[var(--text-muted)] border-t border-[var(--border)]">
       {t('footerCopyright')}
@@ -91,17 +88,12 @@ interface KpiData {
   paradas: KpiCardData;
 }
 
-// --- Componente Dashboard Principal ---
-
 export const Dashboard: React.FC = () => {
   const { t } = useAccessibility();
-  
-  // Estado para controlar o gráfico ativo
-  const [activeChart, setActiveChart] = useState<string>('eficiencia');
 
+  const [activeChart, setActiveChart] = useState<string>('eficiencia');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Estados para os dados dos gráficos
   const [producaoTempoData, setProducaoTempoData] = useState({ labels: [], datasets: [] });
   const [eficienciaData, setEficienciaData] = useState({ labels: [], datasets: [] });
   const [producaoTecidoData, setProducaoTecidoData] = useState({ labels: [], datasets: [] });
@@ -113,26 +105,23 @@ export const Dashboard: React.FC = () => {
   const [kpiLoading, setKpiLoading] = useState<boolean>(true);
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
 
-  // Funções para formatar dados para o componente Chart
   const formatarDadosParaChart = (chartData, xAxisKey, seriesKey, label) => {
     if (!chartData.labels || chartData.labels.length === 0) {
       return [];
     }
-    
+
     return chartData.labels.map((labelItem, index) => ({
       [xAxisKey]: labelItem,
       [seriesKey]: chartData.datasets?.[0]?.data?.[index] || 0
     }));
   };
 
-  // Dados formatados para o componente Chart
   const eficienciaChartData = formatarDadosParaChart(eficienciaData, 'periodo', 'eficiencia', t('efficiency'));
   const producaoTempoChartData = formatarDadosParaChart(producaoTempoData, 'periodo', 'producao', t('production'));
   const producaoTecidoChartData = formatarDadosParaChart(producaoTecidoData, 'tecido', 'producao', t('production'));
   const setupChartData = formatarDadosParaChart(setupData, 'periodo', 'setup', t('setupTime'));
   const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras', t('strips'));
 
-  // Efeito para buscar os dados
   useEffect(() => {
     const fetchData = async (endpoint, setter, label, bg, border) => {
       try {
@@ -167,51 +156,50 @@ export const Dashboard: React.FC = () => {
 
     fetchKpiData();
 
-    // Requisições para os endpoints
     fetchData(
-      "/api/chart-data", // Eficiência
+      "/api/chart-data",
       setEficienciaData,
       t('averageMeters'),
       "rgba(75, 192, 192, 0.2)",
       "rgba(75, 192, 192, 1)"
     );
     fetchData(
-      "/api/chart-producao-tempo", // Produção/Tempo
+      "/api/chart-producao-tempo",
       setProducaoTempoData,
       t('productionTime'),
       "rgba(54, 162, 235, 0.2)",
       "rgba(54, 162, 235, 1)"
     );
     fetchData(
-      "/api/chart-producao-tecido", // Produção/Tecido
+      "/api/chart-producao-tecido",
       setProducaoTecidoData,
       t('totalProduced'),
       ["rgba(255, 159, 64, 0.5)", "rgba(75, 192, 192, 0.5)", "rgba(153, 102, 255, 0.5)", "rgba(255, 206, 86, 0.5)"],
       ["rgba(255, 159, 64, 1)", "rgba(75, 192, 192, 1)", "rgba(153, 102, 255, 1)", "rgba(255, 206, 86, 1)"]
     );
     fetchData(
-      "/api/chart-localidades", // Localidade
+      "/api/chart-localidades",
       setLocalidadesData,
       t('totalProduced'),
       ["rgba(153, 102, 255, 0.5)", "rgba(54, 162, 235, 0.5)", "rgba(255, 99, 132, 0.5)", "rgba(75, 192, 192, 0.5)"],
       ["rgba(153, 102, 255, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)", "rgba(75, 192, 192, 1)"]
     );
     fetchData(
-      "/api/chart-sobras", // Sobras
+      "/api/chart-sobras",
       setSobrasData,
       t('rollWaste'),
       ["rgba(255, 206, 86, 0.2)", "rgba(54, 162, 235, 0.2)"],
       ["rgba(255, 206, 86, 1)", "rgba(54, 162, 235, 1)"]
     );
     fetchData(
-      "/api/chart-setup", // Setup
+      "/api/chart-setup",
       setSetupData,
       t('averageTime'),
       "rgba(255, 99, 132, 0.2)",
       "rgba(255, 99, 132, 1)"
     );
     fetchData(
-      "/api/chart-tiras", // Tiras
+      "/api/chart-tiras",
       setTirasData,
       t('occurrences'),
       "rgba(192, 192, 192, 0.2)",
@@ -235,29 +223,13 @@ export const Dashboard: React.FC = () => {
     };
   }, []);
 
-  // Opções dos gráficos
-  const chartOptions = {
-    maintainAspectRatio: false,
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' as const, labels: { color: '#999' } },
-      tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#FFF', bodyColor: '#FFF' }
-    },
-    scales: {
-      x: { ticks: { color: '#999' }, grid: { color: '#333' } },
-      y: { ticks: { color: '#999' }, grid: { color: '#333' } }
-    }
-  };
-
   const renderActiveChart = () => {
-    const activeButton = chartButtons.find(button => button.key === activeChart);
-    
     switch (activeChart) {
       case 'eficiencia':
         return (
-          <Chart 
-            data={eficienciaChartData} 
-            xAxis="periodo" 
+          <Chart
+            data={eficienciaChartData}
+            xAxis="periodo"
             series={{ bar: ['eficiencia'] }}
             labelMap={{ eficiencia: t('efficiency') }}
             colors={["#3b82f6"]}
@@ -266,9 +238,9 @@ export const Dashboard: React.FC = () => {
         );
       case 'producaoTempo':
         return (
-          <Chart 
-            data={producaoTempoChartData} 
-            xAxis="periodo" 
+          <Chart
+            data={producaoTempoChartData}
+            xAxis="periodo"
             series={{ line: ['producao'] }}
             labelMap={{ producao: t('production') }}
             colors={["#10b981"]}
@@ -277,9 +249,9 @@ export const Dashboard: React.FC = () => {
         );
       case 'producaoTecido':
         return (
-          <Chart 
-            data={producaoTecidoChartData} 
-            xAxis="tecido" 
+          <Chart
+            data={producaoTecidoChartData}
+            xAxis="tecido"
             series={{ bar: ['producao'] }}
             labelMap={{ producao: t('production') }}
             colors={["#8b5cf6"]}
@@ -287,14 +259,38 @@ export const Dashboard: React.FC = () => {
           />
         );
       case 'localidade':
-        return <Pie data={localidadesData} options={chartOptions} />;
+        return (
+          <Chart
+            data={localidadesData.labels?.map((label, index) => ({
+              localidade: label,
+              producao: localidadesData.datasets?.[0]?.data?.[index] || 0
+            }))}
+            xAxis="localidade"
+            series={{ bar: ['producao'] }}
+            labelMap={{ producao: t('productionMeters') }}
+            colors={["#3b82f6"]}
+            height={350}
+          />
+        );
       case 'sobras':
-        return <Doughnut data={sobrasData} options={chartOptions} />;
+        return (
+          <Chart
+            data={sobrasData.labels?.map((label, index) => ({
+              periodo: label,
+              sobras: sobrasData.datasets?.[0]?.data?.[index] || 0
+            }))}
+            xAxis="periodo"
+            series={{ area: ['sobras'] }}
+            labelMap={{ sobras: t('rollWaste') }}
+            colors={["#06b6d4"]}
+            height={350}
+          />
+        );
       case 'setup':
         return (
-          <Chart 
-            data={setupChartData} 
-            xAxis="periodo" 
+          <Chart
+            data={setupChartData}
+            xAxis="periodo"
             series={{ line: ['setup'] }}
             labelMap={{ setup: t('setupTime') }}
             colors={["#ef4444"]}
@@ -303,9 +299,9 @@ export const Dashboard: React.FC = () => {
         );
       case 'tiras':
         return (
-          <Chart 
-            data={tirasChartData} 
-            xAxis="periodo" 
+          <Chart
+            data={tirasChartData}
+            xAxis="periodo"
             series={{ bar: ['tiras'] }}
             labelMap={{ tiras: t('strips') }}
             colors={["#f59e0b"]}
@@ -314,9 +310,9 @@ export const Dashboard: React.FC = () => {
         );
       default:
         return (
-          <Chart 
-            data={eficienciaChartData} 
-            xAxis="periodo" 
+          <Chart
+            data={eficienciaChartData}
+            xAxis="periodo"
             series={{ bar: ['eficiencia'] }}
             labelMap={{ eficiencia: t('efficiency') }}
             colors={["#3b82f6"]}
@@ -360,12 +356,9 @@ export const Dashboard: React.FC = () => {
         <div className="flex items-center gap-2 mt-4 md:mt-0"></div>
       </div>
 
-      {/* Título */}
       <h1 className="text-2xl font-semibold mb-6 text-[var(--text)]">{t('productionOverview')}</h1>
 
-      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Eficiência */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('machineEfficiency')}</h3>
@@ -374,7 +367,6 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.eficiencia)}
         </div>
 
-        {/* Atingimento */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('goalAchievement')}</h3>
@@ -383,7 +375,6 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.atingimento)}
         </div>
 
-        {/* Produção */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('totalProduction')}</h3>
@@ -392,7 +383,6 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.producao)}
         </div>
 
-        {/* Paradas */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('stoppagesSetup')}</h3>
@@ -402,22 +392,20 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Gráficos */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 min-w-0">
         <div className="flex flex-wrap gap-2 mb-4 justify-center md:justify-start w-full">
-          {/* Botões renderizados dinamicamente com ButtonBase */}
           {chartButtons.map((button) => (
-            <ButtonBase
+            <button
               key={button.key}
               onClick={() => handleChartButtonClick(button.key)}
               className={`px-3 py-1 rounded-lg transition-colors duration-200
               ${activeChart === button.key
-                  ? 'bg-[#8E68FF] text-white font-medium' // Estilo Ativo
-                  : 'bg-[var(--surface)] text-[var(--text)] hover:bg-gray-700' // Estilo Inativo
+                  ? 'bg-[#8E68FF] text-white font-medium'
+                  : 'bg-[var(--surface)] text-[var(--text)] hover:bg-gray-700'
                 }`}
             >
               {t(button.label)}
-            </ButtonBase>
+            </button>
           ))}
         </div>
 
