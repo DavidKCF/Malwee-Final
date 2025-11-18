@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Footer } from "../Footer/Footer";
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
+import {
+  InputBase,
+  CheckboxBase,
+  LabelBase,
+  Combobox,
+} from "@mlw-packages/react-components";
 
 // --- Interfaces para os tipos de dados ---
 
@@ -26,7 +32,7 @@ interface ResumoData {
 const initialState: FormData = {
   espessura: "",
   largura: "",
-  tipoMalha: "wovenFabric", // Valor padrão do select
+  tipoMalha: "wovenFabric",
   metragem: "",
   saida: "",
   densidade: "",
@@ -47,18 +53,19 @@ export const Producoes: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialState);
   const [resumo, setResumo] = useState<ResumoData>(initialResumo);
 
-  /**
-   * Converte uma string com vírgula (ex: "1,2") para um número (ex: 1.2)
-   */
+  const items = [
+    { label: 'JavaScript', value: 'js' },
+    { label: 'TypeScript', value: 'ts' },
+    { label: 'Python', value: 'py' },
+    { label: 'Java', value: 'java' },
+  ];
+  const [selected, setSelected] = React.useState(items[0].value);
+
   const parseLocalFloat = (value: string): number => {
     if (!value) return 0;
-    // Substitui a vírgula por ponto para conversão
     return parseFloat(value.replace(",", ".")) || 0;
   };
 
-  /**
-   * Lidar com mudanças em qualquer input ou select
-   */
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -71,57 +78,33 @@ export const Producoes: React.FC = () => {
     }));
   };
 
-  /**
-   * Lógica de cálculo principal
-   */
   const calcularValores = (): ResumoData => {
-    // Converte para números e para metros (onde aplicável)
-    const espessura_m = parseLocalFloat(formData.espessura) / 1000; // mm -> m
-    const largura_m = parseLocalFloat(formData.largura) / 1000; // mm -> m
+    const espessura_m = parseLocalFloat(formData.espessura) / 1000;
+    const largura_m = parseLocalFloat(formData.largura) / 1000;
     const metragem_val = parseLocalFloat(formData.metragem);
     const saida_val = parseLocalFloat(formData.saida);
-    const densidade_val = parseLocalFloat(formData.densidade); // kg/m³
+    const densidade_val = parseLocalFloat(formData.densidade);
 
-    // 1. Área por metro (m²/m) = (largura em metros)
     const areaPorMetro = largura_m;
-
-    // 2. Volume total (m³) = (metragem × largura × espessura)
     const volumeTotal = metragem_val * largura_m * espessura_m;
-
-    // 3. Gasto estimado (kg) = (volume × densidade)
     const gastoEstimado = volumeTotal * densidade_val;
-
-    // 4. Rendimento por peça (m) = (metragem / saída)
     const rendimentoPorPeca = saida_val > 0 ? metragem_val / saida_val : 0;
 
     return { areaPorMetro, volumeTotal, gastoEstimado, rendimentoPorPeca };
   };
 
-  /**
-   * Botão: Calcular Resumo
-   */
   const calcularResumo = () => {
     const valores = calcularValores();
     setResumo(valores);
-    console.log("Resumo calculado:", valores);
   };
 
-  /**
-   * Botão: Limpar Formulário
-   */
   const limparFormulario = () => {
     setFormData(initialState);
     setResumo(initialResumo);
-    console.log("Formulário limpo!");
   };
 
-  /**
-   * Botão: Exportar CSV
-   */
   const exportarDados = () => {
-    console.log("Exportando dados para CSV...");
     const valoresCalculados = calcularValores();
-
     const headers = [
       t('thickness'),
       t('width'),
@@ -139,23 +122,21 @@ export const Producoes: React.FC = () => {
     const data = [
       formData.espessura,
       formData.largura,
-      t(formData.tipoMalha as keyof typeof translations["pt-BR"]),
+      t(formData.tipoMalha),
       formData.metragem,
       formData.saida,
       formData.densidade,
-      `"${formData.observacoes.replace(/"/g, '""')}"`, // Trata aspas nas observações
+      `"${formData.observacoes.replace(/"/g, '""')}"`,
       valoresCalculados.areaPorMetro.toFixed(2),
       valoresCalculados.volumeTotal.toFixed(3),
       valoresCalculados.gastoEstimado.toFixed(1),
       valoresCalculados.rendimentoPorPeca.toFixed(2),
     ];
 
-    // Usa ponto e vírgula (;) como separador para compatibilidade com Excel pt-BR
     const csvHeader = headers.join(";") + "\n";
     const csvData = data.join(";");
     const csvString = csvHeader + csvData;
 
-    // Cria e baixa o arquivo
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -190,14 +171,14 @@ export const Producoes: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputBase
               label={t('thickness')}
               placeholder="1,2"
               name="espessura"
               value={formData.espessura}
               onChange={handleChange}
             />
-            <Input
+            <InputBase
               label={t('stripWidth')}
               placeholder="50"
               name="largura"
@@ -205,57 +186,61 @@ export const Producoes: React.FC = () => {
               onChange={handleChange}
             />
 
-            <div>
-              <label className="text-sm font-medium text-[var(--text)]">
-                {t('fabricType')}
-              </label>
-              <select
-                name="tipoMalha"
-                value={formData.tipoMalha}
-                onChange={handleChange}
-                className="mt-2 w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-              >
-                <option value="wovenFabric">{t('wovenFabric')}</option>
-                <option value="cottonFabric">{t('cottonFabric')}</option>
-                <option value="syntheticFabric">{t('syntheticFabric')}</option>
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-">
+              <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+              </LabelBase>
+              <Combobox
+                items={items}
+                selected={selected}
+                onChange={(v) => v !== null && setSelected(v)}
+                label={t('fabricType')}
+              />
             </div>
 
-            <Input
+            <InputBase
               label={t('meterage')}
               placeholder="100"
               name="metragem"
               value={formData.metragem}
               onChange={handleChange}
             />
-            <Input
+
+            <InputBase
               label={t('output')}
               placeholder="200"
               name="saida"
               value={formData.saida}
               onChange={handleChange}
             />
-            <Input
+
+            <InputBase
               label={t('density')}
               placeholder="900"
               name="densidade"
               value={formData.densidade}
               onChange={handleChange}
             />
-          </div>
 
-          <div className="mt-4">
-            <label className="text-sm font-medium text-[var(--text)]">
-              {t('observations')}
-            </label>
-            <input
-              type="text"
-              placeholder={t('productionNotes')}
-              name="observacoes"
-              value={formData.observacoes}
-              onChange={handleChange}
-              className="mt-2 w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            />
+            <div className="md:col-span-2">
+              <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer mb-4">
+                <CheckboxBase id="terms" data-testid="checkbox-terms" />
+                {t("taskComplete")}
+              </LabelBase>
+
+              <div>
+                <label className="text-sm font-medium text-[var(--text)]">
+                  {t('observations')}
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('productionNotes')}
+                  name="observacoes"
+                  value={formData.observacoes}
+                  onChange={handleChange}
+                  className="mt-2 w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-3 items-center justify-end mt-6">
@@ -291,7 +276,6 @@ export const Producoes: React.FC = () => {
             {t('quickOverview')}
           </p>
 
-          {/* Valores agora vêm do estado 'resumo' e são formatados */}
           <ResumoBox
             label={t('areaPerMeter')}
             value={resumo.areaPorMetro.toFixed(2)}
@@ -314,7 +298,7 @@ export const Producoes: React.FC = () => {
           />
 
           <div className="text-sm text-[var(--text-muted)] mt-6">
-            <p>{t('selectedFabricType')}: {t(formData.tipoMalha as keyof typeof translations["pt-BR"]) || "–"}</p>
+            <p>{t('selectedFabricType')}: {t(formData.tipoMalha) || "–"}</p>
             <p className="mt-1">{t('observations')}: {formData.observacoes || "–"}</p>
             <p className="mt-4 text-xs">
               {t('calculatedValues')}
@@ -327,36 +311,6 @@ export const Producoes: React.FC = () => {
     </main>
   );
 };
-
-// --- Componente Input (Modificado) ---
-
-interface InputProps {
-  label: string;
-  placeholder: string;
-  name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-const Input: React.FC<InputProps> = ({
-  label,
-  placeholder,
-  name,
-  value,
-  onChange,
-}) => (
-  <div>
-    <label className="text-sm font-medium text-[var(--text)]">{label}</label>
-    <input
-      type="text"
-      placeholder={placeholder}
-      name={name}
-      value={value}
-      onChange={onChange}
-      className="mt-2 w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-    />
-  </div>
-);
 
 // --- Componente ResumoBox ---
 
@@ -375,17 +329,3 @@ const ResumoBox = ({
     <small className="text-xs text-[var(--text-muted)]">{detail}</small>
   </div>
 );
-
-// Traduções auxiliares para o select
-const translations = {
-  "pt-BR": {
-    wovenFabric: "Malha Tecida",
-    cottonFabric: "Malha de Algodão",
-    syntheticFabric: "Malha Sintética",
-  },
-  "en-US": {
-    wovenFabric: "Woven Fabric",
-    cottonFabric: "Cotton Fabric",
-    syntheticFabric: "Synthetic Fabric",
-  },
-};

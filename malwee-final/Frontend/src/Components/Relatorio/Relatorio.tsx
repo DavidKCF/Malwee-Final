@@ -376,7 +376,6 @@ export const Relatorio: React.FC = () => {
     });
   }, [data, filters]);
 
-  // Memoiza os dados paginados
   const { paginatedData, totalPages } = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -384,13 +383,17 @@ export const Relatorio: React.FC = () => {
 
     return {
       paginatedData: filteredData.slice(startIndex, endIndex),
-      totalPages: total > 0 ? total : 1, // Garante pelo menos 1 página
+      totalPages: total > 0 ? total : 1, 
     };
   }, [filteredData, currentPage, itemsPerPage]);
 
-  // --- Handlers de Eventos ---
+  const items = [
+    { label: '1', value: '1' },
+    { label: '2', value: '2' },
+    { label: '3', value: '3' },
+  ];
+  const [selected, setSelected] = React.useState(items[0].value);
 
-  // Handler para mudança nos filtros
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -527,46 +530,41 @@ export const Relatorio: React.FC = () => {
             />
           </div>
           <div>
-            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">{t('machine')}</LabelBase>
-            <InputBase label='Maquina' placeholder='seu@M.com'>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2"></LabelBase>
+            <InputBase label='Maquina' placeholder='Maquina'>
             </InputBase>
           </div>
+          
           <div>
-            <label className="block text-sm text-[var(--text-muted)] mb-2">{t('fabricType')}</label>
-            <select
-              name="tipoTecido"
-              value={filters.tipoTecido}
-              onChange={handleFilterChange}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            >
-              <option value="all">{t('all')}</option>
-              {tecidoOptions.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+            </LabelBase>
+            <Combobox items={items} selected={selected} onChange={(v) => v !== null && setSelected(v)} label="Linguagem de Programação" />
           </div>
-          <div>
-            <label className="block text-sm text-[var(--text-muted)] mb-2">{t('taskComplete')}</label>
-            <select
-              name="tarefaCompleta"
-              value={filters.tarefaCompleta}
-              onChange={handleFilterChange}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          <div className="flex items-center gap-6 mt-4">
+            <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
+              <CheckboxBase
+                id="terms" data-testid="checkbox-terms" />
+              {t("taskComplete")}
+            </LabelBase>
+
+            <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
+              <CheckboxBase
+                id="terms" data-testid="checkbox-terms"
+              />
+              {t("rollWaste")}
+            </LabelBase>
+
+            <ButtonBase
+              onClick={handleClearFilters}
+              className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
             >
-              <option value="all">{t('all')}</option>
-              <option value="true">{t('yes')}</option>
-              <option value="false">{t('no')}</option>
-            </select>
+              Filtrar
+            </ButtonBase>
           </div>
         </form>
 
         <div className="flex justify-end mt-6 gap-3">
-          <ButtonBase
-            onClick={handleClearFilters}
-            className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
-          >
-            {t('clear')}
-          </ButtonBase>
+
         </div>
       </section>
 

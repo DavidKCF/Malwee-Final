@@ -355,7 +355,7 @@ app.post('/login', (req, res) => {
 
             res.status(200).json({
                 mensagem: 'Login realizado com sucesso!',
-                token: token,
+                token: token, 
                 usuario: { id: usuarioEncontrado.id, nome: usuarioEncontrado.nome }
             });
         })

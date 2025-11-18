@@ -116,11 +116,11 @@ export const Dashboard: React.FC = () => {
     }));
   };
 
-  const eficienciaChartData = formatarDadosParaChart(eficienciaData, 'periodo', 'eficiencia', t('efficiency'));
+  const eficienciaChartData = formatarDadosParaChart(eficienciaData, 'periodo', 'eficiencia', t('machineEfficiency'));
   const producaoTempoChartData = formatarDadosParaChart(producaoTempoData, 'periodo', 'producao', t('production'));
   const producaoTecidoChartData = formatarDadosParaChart(producaoTecidoData, 'tecido', 'producao', t('production'));
   const setupChartData = formatarDadosParaChart(setupData, 'periodo', 'setup', t('setupTime'));
-  const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras', t('strips'));
+  const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras', t('stripQuantity'));
 
   useEffect(() => {
     const fetchData = async (endpoint, setter, label, bg, border) => {
@@ -231,7 +231,7 @@ export const Dashboard: React.FC = () => {
             data={eficienciaChartData}
             xAxis="periodo"
             series={{ bar: ['eficiencia'] }}
-            labelMap={{ eficiencia: t('efficiency') }}
+            labelMap={{ eficiencia: t('machineEfficiency') }}
             colors={["#3b82f6"]}
             height={350}
           />
@@ -303,7 +303,7 @@ export const Dashboard: React.FC = () => {
             data={tirasChartData}
             xAxis="periodo"
             series={{ bar: ['tiras'] }}
-            labelMap={{ tiras: t('strips') }}
+            labelMap={{ tiras: t('stripQuantity') }}
             colors={["#f59e0b"]}
             height={350}
           />
@@ -314,7 +314,7 @@ export const Dashboard: React.FC = () => {
             data={eficienciaChartData}
             xAxis="periodo"
             series={{ bar: ['eficiencia'] }}
-            labelMap={{ eficiencia: t('efficiency') }}
+            labelMap={{ eficiencia: t('machineEfficiency') }}
             colors={["#3b82f6"]}
             height={350}
           />
