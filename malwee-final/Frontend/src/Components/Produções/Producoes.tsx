@@ -287,7 +287,7 @@ export const Producoes: React.FC = () => {
             detail={t('totalVolumeDetail')}
           />
           <ResumoBox
-            label={t('estimatedCost')}
+            label={t('estimatedCost')} ,
             value={resumo.gastoEstimado.toFixed(1)}
             detail={t('estimatedCostDetail')}
           />
