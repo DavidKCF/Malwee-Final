@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ButtonBase,
   LabelBase,
@@ -90,8 +90,6 @@ export const Relatorio: React.FC = () => {
     }
   }, [producaoData]);
 
-
-
   // --- Handlers dos Filtros ---
 
   const handleStartDateChange = (value: string) => {
@@ -102,8 +100,9 @@ export const Relatorio: React.FC = () => {
     setFilters(prev => ({ ...prev, endDate: value }));
   };
 
-  const handleMaquinaChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setFilters(prev => ({ ...prev, maquina: e.target.value }));
+  // CORREÇÃO AQUI: Remove o ChangeEvent e recebe o valor diretamente
+  const handleMaquinaChange = (value: string) => {
+    setFilters(prev => ({ ...prev, maquina: value }));
   };
 
   const handleTipoTecidoChange = (value: string | null) => {
@@ -139,7 +138,7 @@ export const Relatorio: React.FC = () => {
   };
 
   // Handler para mudança na pesquisa
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({
       ...prev,
       search: e.target.value,
@@ -379,23 +378,23 @@ export const Relatorio: React.FC = () => {
           </div>
 
           {/* Máquina */}
-          const machineItems = [
-          {value: "all", label: "Todos" },
-  ...maquinaOptions.map(maquina => ({value: maquina, label: maquina }))
-          ];
-
-          // No JSX:
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("machine")}
             </LabelBase>
             <Combobox
-              items={machineItems}
+              items={[
+                { value: "all", label: "Todos" },
+                ...maquinaOptions.map(maquina => ({
+                  value: maquina,
+                  label: maquina
+                }))
+              ]}
               selected={filters.maquina}
               onChange={handleMaquinaChange}
               label=""
-              placeholder={t("selectOption")}
-              searchPlaceholder={t("searchPlaceholder")}
+              placeholder={t("selectOption") || "Selecionar máquina"}
+              searchPlaceholder={t("searchPlaceholder") || "Buscar..."}
             />
           </div>
 
