@@ -379,18 +379,18 @@ export const Relatorio: React.FC = () => {
           </div>
 
           {/* Máquina */}
+          const machineItems = [
+          {value: "all", label: "Todos" },
+  ...maquinaOptions.map(maquina => ({value: maquina, label: maquina }))
+          ];
+
+          // No JSX:
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("machine")}
             </LabelBase>
             <Combobox
-              items={[
-                { value: "all", label: "Todos" },
-                ...maquinaOptions.map(maquina => ({
-                  value: maquina,
-                  label: maquina
-                }))
-              ]}
+              items={machineItems}
               selected={filters.maquina}
               onChange={handleMaquinaChange}
               label=""
