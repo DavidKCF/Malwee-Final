@@ -90,7 +90,7 @@ export const Relatorio: React.FC = () => {
     }
   }, [producaoData]);
 
-  
+
 
   // --- Handlers dos Filtros ---
 
@@ -383,16 +383,20 @@ export const Relatorio: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("machine")}
             </LabelBase>
-            <select
-              value={filters.maquina}
+            <Combobox
+              items={[
+                { value: "all", label: "Todos" },
+                ...maquinaOptions.map(maquina => ({
+                  value: maquina,
+                  label: maquina
+                }))
+              ]}
+              selected={filters.maquina}
               onChange={handleMaquinaChange}
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            >
-              <option value="all">Todos</option>
-              {maquinaOptions.map(maquina => (
-                <option key={maquina} value={maquina}>{maquina}</option>
-              ))}
-            </select>
+              label=""
+              placeholder={t("selectOption")}
+              searchPlaceholder={t("searchPlaceholder")}
+            />
           </div>
 
           {/* Tipo de Tecido */}
