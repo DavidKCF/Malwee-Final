@@ -12,6 +12,7 @@ import React, {
 // --- TRADUÇÕES ---
 const translations = {
   "pt-BR": {
+    clearFilters: "Limpar Filtro",
     filter: "Filtrar",
     dateTime: "Data/Hora",
     machine: "Máquina",
@@ -296,6 +297,7 @@ const translations = {
     malweeLogoAlt: "Logo do Grupo Malwee",
   },
   "en-US": {
+    clearFilters: "Clear Filter",
     selectDate: "Select Date",
     filter: "Filter",
     dateTime: "Date/Time",

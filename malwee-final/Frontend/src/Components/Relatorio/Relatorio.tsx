@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
 import {
   ButtonBase,
-  InputBase,
-  CheckboxBase,
   LabelBase,
   DateTimePicker,
   Combobox,
@@ -18,6 +16,7 @@ interface Filters {
   maquina: string;
   tipoTecido: string;
   tarefaCompleta: string;
+  sobraRolo: string;
   search: string;
 }
 
@@ -35,7 +34,7 @@ export const Footer: React.FC = () => {
 // --- Componente Principal Relatorio ---
 export const Relatorio: React.FC = () => {
   const { t } = useAccessibility();
-  
+
   // Usa o hook para carregar dados automaticamente do CSV
   const { data: producaoData, loading, error } = useProducaoData('/data/data.csv');
 
@@ -46,6 +45,7 @@ export const Relatorio: React.FC = () => {
     maquina: "all",
     tipoTecido: "all",
     tarefaCompleta: "all",
+    sobraRolo: "all",
     search: "",
   });
 
@@ -57,13 +57,25 @@ export const Relatorio: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(10);
 
-  const items = [
+  // Opções para os combobox
+  const tipoTecidoItems = [
     { label: 'Todos', value: 'all' },
     { label: '1', value: '1' },
     { label: '2', value: '2' },
     { label: '3', value: '3' },
   ];
-  const [selected, setSelected] = React.useState(items[0].value);
+
+  const tarefaCompletaItems = [
+    { label: 'Todos', value: 'all' },
+    { label: 'Sim', value: 'true' },
+    { label: 'Não', value: 'false' },
+  ];
+
+  const sobraRoloItems = [
+    { label: 'Todos', value: 'all' },
+    { label: 'Sim', value: 'true' },
+    { label: 'Não', value: 'false' },
+  ];
 
   // --- Efeitos ---
 
@@ -72,18 +84,72 @@ export const Relatorio: React.FC = () => {
     if (producaoData.length > 0) {
       const maquinas = [...new Set(producaoData.map(item => item.Maquina).filter(Boolean))];
       const tecidos = [...new Set(producaoData.map(item => item.TipoTecido))].sort((a, b) => a - b);
-      
+
       setMaquinaOptions(maquinas);
       setTecidoOptions(tecidos);
     }
   }, [producaoData]);
 
+  
+
+  // --- Handlers dos Filtros ---
+
+  const handleStartDateChange = (value: string) => {
+    setFilters(prev => ({ ...prev, startDate: value }));
+  };
+
+  const handleEndDateChange = (value: string) => {
+    setFilters(prev => ({ ...prev, endDate: value }));
+  };
+
+  const handleMaquinaChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setFilters(prev => ({ ...prev, maquina: e.target.value }));
+  };
+
+  const handleTipoTecidoChange = (value: string | null) => {
+    if (value !== null) {
+      setFilters(prev => ({ ...prev, tipoTecido: value }));
+    }
+  };
+
+  const handleTarefaCompletaChange = (value: string | null) => {
+    if (value !== null) {
+      setFilters(prev => ({ ...prev, tarefaCompleta: value }));
+    }
+  };
+
+  const handleSobraRoloChange = (value: string | null) => {
+    if (value !== null) {
+      setFilters(prev => ({ ...prev, sobraRolo: value }));
+    }
+  };
+
+  // Handler para limpar os filtros
+  const handleClearFilters = () => {
+    setFilters({
+      startDate: "",
+      endDate: "",
+      maquina: "all",
+      tipoTecido: "all",
+      tarefaCompleta: "all",
+      sobraRolo: "all",
+      search: "",
+    });
+    setCurrentPage(1);
+  };
+
+  // Handler para mudança na pesquisa
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      search: e.target.value,
+    }));
+  };
+
   // --- Lógica de Filtro e Paginação ---
 
   // Memoiza os dados filtrados
   const filteredData = useMemo(() => {
-    setCurrentPage(1); // Reseta a página ao aplicar filtros
-
     return producaoData.filter(item => {
       const s = filters.search.toLowerCase();
 
@@ -110,6 +176,10 @@ export const Relatorio: React.FC = () => {
       // Filtro de Tarefa Completa
       if (filters.tarefaCompleta !== "all") {
         if (item.TarefaCompleta !== (filters.tarefaCompleta === "true")) return false;
+      }
+      // Filtro de Sobra de Rolo
+      if (filters.sobraRolo !== "all") {
+        if (item.SobraRolo !== (filters.sobraRolo === "true")) return false;
       }
 
       // Filtro de Pesquisa (search)
@@ -138,35 +208,6 @@ export const Relatorio: React.FC = () => {
       totalPages: total > 0 ? total : 1,
     };
   }, [filteredData, currentPage, itemsPerPage]);
-
-  const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Handler para limpar os filtros
-  const handleClearFilters = () => {
-    setFilters({
-      startDate: "",
-      endDate: "",
-      maquina: "all",
-      tipoTecido: "all",
-      tarefaCompleta: "all",
-      search: "",
-    });
-    setCurrentPage(1);
-  };
-
-  // Handler para mudança na pesquisa
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({
-      ...prev,
-      search: e.target.value,
-    }));
-  };
 
   // Handlers de Paginação
   const handlePageChange = (newPage: number) => {
@@ -313,71 +354,102 @@ export const Relatorio: React.FC = () => {
       <section className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 mb-8 shadow-md">
         <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">{t('searchFilter')}</h2>
         <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Data Início */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("startDate")}
             </LabelBase>
             <DateTimePicker
+              value={filters.startDate}
+              onChange={handleStartDateChange}
               placeholder={t("selectDate")}
             />
           </div>
+
+          {/* Data Fim */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("endDate")}
             </LabelBase>
             <DateTimePicker
+              value={filters.endDate}
+              onChange={handleEndDateChange}
               placeholder={t("selectDate")}
             />
           </div>
+
+          {/* Máquina */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("machine")}
             </LabelBase>
-            <InputBase
-              label=''
-              placeholder={t("machine")}
-            />
+            <select
+              value={filters.maquina}
+              onChange={handleMaquinaChange}
+              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            >
+              <option value="all">Todos</option>
+              {maquinaOptions.map(maquina => (
+                <option key={maquina} value={maquina}>{maquina}</option>
+              ))}
+            </select>
           </div>
 
+          {/* Tipo de Tecido */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("fabricType")}
             </LabelBase>
             <Combobox
-              items={items}
-              selected={selected}
-              onChange={(v) => v !== null && setSelected(v)}
+              items={tipoTecidoItems}
+              selected={filters.tipoTecido}
+              onChange={handleTipoTecidoChange}
               label=""
               placeholder={t("selectOption")}
               searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
-          <div className="flex items-center gap-6 mt-4">
-            <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
-              <CheckboxBase
-                id="terms" data-testid="checkbox-terms" />
+
+          {/* Tarefa Completa */}
+          <div>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("taskComplete")}
             </LabelBase>
+            <Combobox
+              items={tarefaCompletaItems}
+              selected={filters.tarefaCompleta}
+              onChange={handleTarefaCompletaChange}
+              label=""
+              placeholder={t("selectOption")}
+              searchPlaceholder={t("searchPlaceholder")}
+            />
+          </div>
 
-            <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
-              <CheckboxBase
-                id="terms" data-testid="checkbox-terms"
-              />
+          {/* Sobra de Rolo */}
+          <div>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("rollWaste")}
             </LabelBase>
+            <Combobox
+              items={sobraRoloItems}
+              selected={filters.sobraRolo}
+              onChange={handleSobraRoloChange}
+              label=""
+              placeholder={t("selectOption")}
+              searchPlaceholder={t("searchPlaceholder")}
+            />
+          </div>
 
+          {/* Botão Limpar Filtros */}
+          <div className="flex items-end">
             <ButtonBase
               onClick={handleClearFilters}
-              className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
+              className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors w-full"
             >
-              {t("filter")}
+              {t("clearFilters")}
             </ButtonBase>
           </div>
         </form>
-
-        <div className="flex justify-end mt-6 gap-3">
-
-        </div>
       </section>
 
       {/* Seção de Resultados */}
