@@ -296,6 +296,30 @@ apiRouter.get('/kpi-data', async (req, res) => {
     }
 });
 
+apiRouter.get('/usuario', async(req, res) => {
+    try{
+        const userId = req.user.id;
+
+        const [rows] = await pool.query(
+            'SELECT nome, email from usuario where id = ?',
+            [userId]
+        );
+
+        if(rows.length === 0){
+            return res.status(404).json({erro: 'Usuário não encontrado!'});
+        }
+
+        const usuario = rows[0];
+        res.json({
+            nome: usuario.nome,
+            email: usuario.email
+        })
+    }catch(erro){
+        console.error('ERRO ao buscar perfil do usuário: ', erro);
+        res.status(500).json({error: 'Erro ao buscar dados do usuário'});
+    }
+});
+
 
 //Cadastro 
 app.post('/registro', (req, res) => {

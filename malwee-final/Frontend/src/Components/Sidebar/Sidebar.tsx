@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../image/logo.png";
 import { useTheme } from "../../theme/ThemeContext";
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext"; // CAMINHO CORRETO
@@ -7,6 +7,14 @@ import { useAccessibility } from "../Acessibilidade/AccessibilityContext"; // CA
 export const Sidebar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { t } = useAccessibility();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('usuario');
+
+    navigate('/login')
+  }
 
   return (
     <div className="bg-[var(--surface)] text-[var(--text)] transition-colors duration-300">
@@ -21,6 +29,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Menu */}
         <nav className="flex flex-col w-full gap-2 px-3 group">
+          {/* Home */}
           <Link
             to="/home"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -32,6 +41,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Dashboard */}
           <Link
             to="/dashboard"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -43,6 +53,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Relatórios */}
           <Link
             to="/relatorios"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -54,6 +65,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Produções */}
           <Link
             to="/producoes"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -65,6 +77,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Cadastro de dados */}
           <Link
             to="/cadastrodados"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -76,6 +89,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Usuario */}
           <Link
             to="/usuario"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -87,6 +101,7 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Acessibilidade */}
           <Link
             to="/acessibilidade"
             className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
@@ -99,16 +114,18 @@ export const Sidebar: React.FC = () => {
           </Link>
         </nav>
 
-        {/* Rodapé */}
+
         <div className="mt-auto flex flex-col gap-4 px-4 pb-6 text-[var(--text-muted)] text-sm w-full">
-          <Link 
-          to="/login" 
-          className="group flex items-center justify-start gap-3 w-full text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors px-3 py-2">
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="group flex items-center justify-start gap-3 w-full text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors px-3 py-2 bg-transparent border-none cursor-pointer">
             <i className="ri-logout-box-r-line text-lg"></i>
             <span className="ml-2 text-[15px] text-[var(--text)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {t('logout')}
             </span>
-          </Link>
+          </button>
 
           {/* Botão alternar tema */}
           <button

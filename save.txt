@@ -42,3 +42,10 @@ cd .\malwee-final\
 
 --RODAR FRONTEND--
 npm run dev
+
+
+
+
+--CASO PRECISE--
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    para tsconfig.app.json

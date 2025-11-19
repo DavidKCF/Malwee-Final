@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Footer } from "../Footer/Footer";
-import { ButtonBase } from '@mlw-packages/react-components';
+import { ButtonBase, } from '@mlw-packages/react-components';
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 import UserAvatar from "../../image/logo.png";
 
@@ -117,14 +117,19 @@ interface UserData {
 
 // Chave para usar no localStorage
 const LOCAL_STORAGE_KEY = "userData";
+const API_URL = "http://localhost:3000";
+
+const getToken = () => {
+  return localStorage.getItem('jwt_token');
+};
 
 export const Usuario: React.FC = () => {
   const { t } = useAccessibility();
-  
+
   const initialData: UserData = {
-    login: "karyna@shops.com.br",
+    login: "",
     dataNascimento: "2019-09-04",
-    nome: "GISELE",
+    nome: "",
     celular: "(21) 98664-8888",
     telefone: "(21) 3215-8788",
     prestador: "notProvider",
@@ -136,6 +141,49 @@ export const Usuario: React.FC = () => {
   });
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = getToken();
+
+      if (!token) {
+        console.warn("Token não encontrado. Usuário pode não estar logado.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/usuario`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          setFormData((prevData) => {
+            const newData = {
+              ...prevData,
+              nome: data.nome,
+              login: data.email
+            };
+
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
+
+            return newData;
+          });
+        } else {
+          console.error("Erro ao buscar dados do usuário:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Erro na requisição:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -207,7 +255,7 @@ export const Usuario: React.FC = () => {
                 {t('changePassword')}
               </ButtonBase>
             </div>
-            
+
             {/* Campos do formulário */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -219,6 +267,7 @@ export const Usuario: React.FC = () => {
                   name="login"
                   value={formData.login}
                   onChange={handleChange}
+                  readOnly={true} 
                   className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
               </div>
@@ -249,6 +298,7 @@ export const Usuario: React.FC = () => {
                 />
               </div>
 
+              {/* ... (Restante dos inputs: celular, telefone, prestador e botões permanecem iguais) ... */}
               <div>
                 <label className="block text-sm text-[var(--text-muted)] mb-2">
                   {t('cellphone')}
@@ -291,7 +341,6 @@ export const Usuario: React.FC = () => {
               </div>
             </div>
 
-            {/* Botões com ButtonBase */}
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-[var(--border)]">
               <ButtonBase
                 onClick={handleClear}

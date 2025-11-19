@@ -91,9 +91,8 @@ export const Login: React.FC = () => {
                 <label className="block text-sm text-[var(--text-muted)] mb-2">
                   Senha
                 </label>
-                <input
+                <InputBase
                   type="password"
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                   placeholder="Digite a sua senha"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
@@ -115,7 +114,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3 rounded-lg bg-[var(--accent)] font-medium border border-transparent transition-all duration-200 ease-in-out shadow-md text-center block text-white
+                  className={`w-full py-3 rounded-lg bg-[var(--accent)] font-medium border border-transparent transition-all duration-200 ease-in-out shadow-md text-center block
                     ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--accent)]/90 hover:scale-[1.02] hover:shadow-lg'}
                   `}
                 >
