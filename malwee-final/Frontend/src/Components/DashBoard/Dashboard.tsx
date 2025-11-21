@@ -445,7 +445,7 @@ export const Dashboard: React.FC = () => {
               className={`px-3 py-1 rounded-lg transition-colors duration-200
               ${activeChart === button.key
                   ? 'bg-[#8E68FF] text-white font-medium'
-                  : 'bg-[var(--surface)] text-[var(--text)] hover:bg-gray-700'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
                 }`}
             >
               {t(button.label)}
