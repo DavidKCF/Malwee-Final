@@ -12,7 +12,7 @@ import {
   ArcElement,
   RadialLinearScale,
   Filler
-} from 'chart.js';
+} from 'chart.js'; 
 import { Chart } from '@mlw-packages/react-components';
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 
