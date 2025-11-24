@@ -28,7 +28,7 @@ export const Home: React.FC = () => {
             to="/dashboard"
             className="relative bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden flex flex-col items-center justify-center py-4 text-center text-[var(--text)] shadow-lg hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(20,255,200,0.25)] transition-all no-underline">
             <div className="absolute top-0 left-0 w-full h-[4px] bg-[#55AF7D]"></div>
-            <span className="mt-1 font-medium text-sm">{t('Dashboard')}</span>
+            <span className="mt-1 font-medium text-sm">{t('dashboard')}</span>
             <i className="ri-building-2-line text-2xl mt-2 text-emerald-300"></i>
           </Link>
 

@@ -276,7 +276,7 @@ export const Dashboard: React.FC = () => {
             xAxis="periodo"
             series={{ bar: ['eficiencia'] }}
             labelMap={{ eficiencia: t('machineEfficiency') }}
-            colors={["#3b82f6"]}
+            colors={["#55AF7D"]}
             height={350}
           />
         );
@@ -287,7 +287,7 @@ export const Dashboard: React.FC = () => {
             xAxis="periodo"
             series={{ line: ['producao'] }}
             labelMap={{ producao: t('production') }}
-            colors={["#10b981"]}
+            colors={["#2273E1"]}
             height={350}
           />
         );
@@ -298,7 +298,7 @@ export const Dashboard: React.FC = () => {
             xAxis="tecido"
             series={{ bar: ['producao'] }}
             labelMap={{ producao: t('production') }}
-            colors={["#8b5cf6"]}
+            colors={["#55AF7D"]}
             height={350}
           />
         );
@@ -312,7 +312,7 @@ export const Dashboard: React.FC = () => {
             xAxis="localidade"
             series={{ bar: ['producao'] }}
             labelMap={{ producao: t('productionMeters') }}
-            colors={["#3b82f6"]}
+            colors={["#2273E1"]}
             height={350}
           />
         );
@@ -326,7 +326,7 @@ export const Dashboard: React.FC = () => {
             xAxis="periodo"
             series={{ area: ['sobras'] }}
             labelMap={{ sobras: t('rollWaste') }}
-            colors={["#06b6d4"]}
+            colors={["#8E68FF"]}
             height={350}
           />
         );
@@ -337,7 +337,7 @@ export const Dashboard: React.FC = () => {
             xAxis="periodo"
             series={{ line: ['setup'] }}
             labelMap={{ setup: t('setupTime') }}
-            colors={["#ef4444"]}
+            colors={["#55AF7D"]}
             height={350}
           />
         );
@@ -348,7 +348,7 @@ export const Dashboard: React.FC = () => {
             xAxis="periodo"
             series={{ bar: ['tiras'] }}
             labelMap={{ tiras: t('stripQuantity') }}
-            colors={["#f59e0b"]}
+            colors={["#8E68FF"]}
             height={350}
           />
         );

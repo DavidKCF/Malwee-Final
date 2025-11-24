@@ -514,7 +514,7 @@ export const Relatorio: React.FC = () => {
           {/* NOVO: Tipo de Saída */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
-              Tipo de Saída
+              {t("typeofexit")}
             </LabelBase>
             <Combobox
               items={tipoSaidaItems}
@@ -593,7 +593,7 @@ export const Relatorio: React.FC = () => {
                 <th className="px-4 py-3 text-left font-medium">{t('productionTime')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('metersProduced')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('complete')}</th>
-                <th className="px-4 py-3 text-left font-medium">Tipo Saída</th> {/* NOVO */}
+                <th className="px-4 py-3 text-left font-medium">{t('typeofexit')}</th>
               </tr>
             </thead>
             <tbody>

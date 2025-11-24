@@ -12,6 +12,7 @@ import React, {
 // --- TRADUÇÕES ---
 const translations = {
   "pt-BR": {
+    typeofexit: "Tipo de Saída",
     clearFilters: "Limpar Filtro",
     filter: "Filtrar",
     dateTime: "Data/Hora",
@@ -238,47 +239,20 @@ const translations = {
     toolsTitle: "Ferramentas de Acessibilidade",
     tool1: "Leitor de Tela",
     tool2: "Navegação por Teclado",
-    tool3: "Navegação Inteligente",
-    tool4: "Bloqueio de Piscar",
-    tool6: "Comando de Voz",
-    colorsTitle: "Ajuste de Cores",
-    customContrast: "Personalizar Contraste",
-    btnFunds: "Fundos",
-    btnTitles: "Títulos",
-    btnTexts: "Textos",
-    btnResetColors: "Resetar Cores",
-    contrast1: "Alto Contraste Claro",
-    contrast2: "Alto Contraste Escuro",
-    contrast3: "Monocromático",
     contentTitle: "Ajuste de Conteúdo",
     fontSize: "Tamanho da Fonte",
     cursor: "Cursor",
     cursorLight: "Claro",
     cursorDark: "Escuro",
     btnDisable: "Desativar Acessibilidade",
-    btnDeclaration: "Declaração de Acessibilidade",
     btnFeedback: "Enviar Feedback",
     resetTooltip: "Resetar configurações",
     hideTooltip: "Esconder menu",
-    cmdIncreaseFont: "aumentar fonte",
-    cmdDecreaseFont: "diminuir fonte",
-    cmdReset: "resetar",
-    cmdContrastDark: "contraste escuro",
-    cmdContrastLight: "contraste claro",
-    cmdMonochrome: "monocromático",
-    smartNavHelp: "Navegação Inteligente Ativada. Use:",
-    smartNavH: "'H' para Títulos",
-    smartNavL: "'L' para Links",
-    smartNavB: "'B' para Botões",
-    smartNavF: "'F' para Campos",
     modalClose: "Fechar",
-    modalDeclarationTitle: "Declaração de Acessibilidade",
-    modalDeclarationText: "Estamos comprometidos em fornecer um site acessível para o maior público possível, independentemente da tecnologia ou habilidade. Estamos trabalhando ativamente para aumentar a acessibilidade e a usabilidade de nosso site e, ao fazê-lo, aderimos a muitos dos padrões e diretrizes disponíveis.",
     modalFeedbackTitle: "Enviar Feedback",
     modalFeedbackText: "Encontrou algum problema de acessibilidade? Por favor, nos avise!",
     modalFeedbackPlaceholder: "Descreva o problema que você encontrou...",
     modalFeedbackSubmit: "Enviar",
-    
 
     // NOVAS TRADUÇÕES ADICIONADAS
     home: "Início",
@@ -297,6 +271,7 @@ const translations = {
     malweeLogoAlt: "Logo do Grupo Malwee",
   },
   "en-US": {
+    typeofexit: "Type of exit",
     clearFilters: "Clear Filter",
     selectDate: "Select Date",
     filter: "Filter",
@@ -524,42 +499,16 @@ const translations = {
     toolsTitle: "Accessibility Tools",
     tool1: "Screen Reader",
     tool2: "Keyboard Navigation",
-    tool3: "Smart Navigation",
-    tool4: "Block Flashing",
-    tool6: "Voice Command",
-    colorsTitle: "Color Adjustment",
-    customContrast: "Customize Contrast",
-    btnFunds: "Backgrounds",
-    btnTitles: "Titles",
-    btnTexts: "Texts",
-    btnResetColors: "Reset Colors",
-    contrast1: "High Contrast Light",
-    contrast2: "High Contrast Dark",
-    contrast3: "Monochrome",
     contentTitle: "Content Adjustment",
     fontSize: "Font Size",
     cursor: "Cursor",
     cursorLight: "Light",
     cursorDark: "Dark",
     btnDisable: "Disable Accessibility",
-    btnDeclaration: "Accessibility Statement",
     btnFeedback: "Send Feedback",
     resetTooltip: "Reset settings",
     hideTooltip: "Hide menu",
-    cmdIncreaseFont: "increase font",
-    cmdDecreaseFont: "decrease font",
-    cmdReset: "reset",
-    cmdContrastDark: "dark contrast",
-    cmdContrastLight: "light contrast",
-    cmdMonochrome: "monochrome",
-    smartNavHelp: "Smart Navigation Enabled. Use:",
-    smartNavH: "'H' for Headings",
-    smartNavL: "'L' for Links",
-    smartNavB: "'B' for Buttons",
-    smartNavF: "'F' for Fields",
     modalClose: "Close",
-    modalDeclarationTitle: "Accessibility Statement",
-    modalDeclarationText: "We are committed to providing an accessible website to the widest possible audience, regardless of technology or ability. We are actively working to increase the accessibility and usability of our website and in doing so, adhere to many of the available standards and guidelines.",
     modalFeedbackTitle: "Send Feedback",
     modalFeedbackText: "Encountered an accessibility issue? Please let us know!",
     modalFeedbackPlaceholder: "Describe the issue you encountered...",
@@ -584,7 +533,7 @@ const translations = {
   },
 };
 
-export const toolKeys = ["tool1", "tool2", "tool3", "tool4", "tool6"];
+export const toolKeys = ["tool1", "tool2"];
 
 // --- HOOK DE ESTADO PERSISTENTE ---
 function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
@@ -610,7 +559,7 @@ function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch
 }
 
 // --- TIPOS DO CONTEXTO ---
-type ModalType = "declaration" | "feedback" | null;
+type ModalType = "feedback" | null;
 
 interface AccessibilityContextState {
   language: "pt-BR" | "en-US";
@@ -621,8 +570,6 @@ interface AccessibilityContextState {
   setActiveTools: React.Dispatch<React.SetStateAction<string[]>>;
   customContrast: number;
   setCustomContrast: React.Dispatch<React.SetStateAction<number>>;
-  contrastMode: string | null;
-  setContrastMode: React.Dispatch<React.SetStateAction<string | null>>;
   fontSize: number;
   setFontSize: React.Dispatch<React.SetStateAction<number>>;
   cursorType: "claro" | "escuro" | null;
@@ -635,16 +582,12 @@ interface AccessibilityContextState {
 
   // Handlers
   handleToggleTool: (toolKey: string) => void;
-  handleContrastMode: (modeName: string) => void;
-  handleResetColors: () => void;
   handleFontSizeIncrease: () => void;
   handleFontSizeDecrease: () => void;
   handleResetAll: () => void;
   handleHideMenu: () => void;
   handleDisableAcessibility: () => void;
-  handleShowDeclaration: () => void;
   handleSendFeedback: () => void;
-  handleColorButtonWarning: () => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextState | undefined>(
@@ -667,16 +610,11 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = usePersistentState<"pt-BR" | "en-US">("acess-lang", "pt-BR");
   const [activeTools, setActiveTools] = usePersistentState<string[]>("acess-tools", []);
   const [customContrast, setCustomContrast] = usePersistentState("acess-custom-contrast", 50);
-  const [contrastMode, setContrastMode] = usePersistentState<string | null>("acess-contrast-mode", null);
   const [fontSize, setFontSize] = usePersistentState("acess-font-size", 16);
   const [cursorType, setCursorType] = usePersistentState<"claro" | "escuro" | null>("acess-cursor", null);
 
   const [isWidgetVisible, setIsWidgetVisible] = usePersistentState("acess-widget-visible", true);
   const [modalContent, setModalContent] = useState<ModalType>(null);
-
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const smartNavIndices = useRef({ h: 0, l: 0, b: 0, f: 0 });
-  const lastSmartNavKey = useRef<string | null>(null);
 
   // --- Função de Tradução ---
   const t = useCallback(
@@ -695,15 +633,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     );
   }, [setActiveTools]);
 
-  const handleContrastMode = useCallback((modeName: string) => {
-    setContrastMode((prevMode) => (prevMode === modeName ? null : modeName));
-  }, [setContrastMode]);
-
-  const handleResetColors = useCallback(() => {
-    setCustomContrast(50);
-    setContrastMode(null);
-  }, [setCustomContrast, setContrastMode]);
-
   const handleFontSizeIncrease = useCallback(() => setFontSize((prev) => prev + 1), [setFontSize]);
   const handleFontSizeDecrease = useCallback(() => setFontSize((prev) => (prev > 10 ? prev - 1 : prev)), [setFontSize]);
 
@@ -711,12 +640,11 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setLanguage("pt-BR");
     setActiveTools([]);
     setCustomContrast(50);
-    setContrastMode(null);
     setFontSize(16);
     setCursorType(null);
     setIsWidgetVisible(true);
     setModalContent(null);
-  }, [setLanguage, setActiveTools, setCustomContrast, setContrastMode, setFontSize, setCursorType, setIsWidgetVisible]);
+  }, [setLanguage, setActiveTools, setCustomContrast, setFontSize, setCursorType, setIsWidgetVisible]);
 
   const handleHideMenu = useCallback(() => {
     console.log("Funcionalidade 'Esconder Menu' foi removida");
@@ -726,12 +654,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     console.log("Funcionalidade 'Desativar Acessibilidade' foi removida");
   }, []);
 
-  const handleShowDeclaration = () => setModalContent("declaration");
   const handleSendFeedback = () => setModalContent("feedback");
-
-  const handleColorButtonWarning = () => {
-    console.warn("Funcionalidade 'Personalizar Cores' não implementada. Requer uma UI de seletor de cores.");
-  };
 
   // --- Efeitos (UseEffects) ---
 
@@ -741,25 +664,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       document.documentElement.style.fontSize = "";
     };
   }, [fontSize]);
-
-  useEffect(() => {
-    const body = document.body;
-    body.classList.remove("high-contrast-light", "high-contrast-dark", "monochrome");
-
-    if (contrastMode === t("contrast1")) {
-      body.classList.add("high-contrast-light");
-    } else if (contrastMode === t("contrast2")) {
-      body.classList.add("high-contrast-dark");
-    } else if (contrastMode === t("contrast3")) {
-      body.classList.add("monochrome");
-    }
-
-    if (contrastMode) setCustomContrast(50);
-
-    return () => {
-      body.classList.remove("high-contrast-light", "high-contrast-dark", "monochrome");
-    };
-  }, [contrastMode, t, setCustomContrast]);
 
   useEffect(() => {
     const body = document.body;
@@ -776,7 +680,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   }, [cursorType]);
 
   useEffect(() => {
-    if (customContrast !== 50 && !contrastMode) {
+    if (customContrast !== 50) {
       const brightnessValue = customContrast / 50;
       document.documentElement.style.filter = `brightness(${brightnessValue})`;
     } else {
@@ -785,96 +689,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     return () => {
       document.documentElement.style.filter = "none";
     };
-  }, [customContrast, contrastMode]);
-
-  useEffect(() => {
-    const isReduceMotionActive = activeTools.includes("tool4");
-    if (isReduceMotionActive) {
-      document.body.classList.add("reduce-motion");
-    } else {
-      document.body.classList.remove("reduce-motion");
-    }
-    return () => {
-      document.body.classList.remove("reduce-motion");
-    };
-  }, [activeTools]);
-
-  useEffect(() => {
-    const isVoiceCommandActive = activeTools.includes("tool6");
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (isVoiceCommandActive && SpeechRecognition) {
-      if (!recognitionRef.current) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = false;
-      }
-
-      const recognition = recognitionRef.current;
-      recognition.lang = language;
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const command = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        console.log("Comando recebido:", command);
-
-        if (command.includes(t("cmdIncreaseFont"))) {
-          handleFontSizeIncrease();
-        } else if (command.includes(t("cmdDecreaseFont"))) {
-          handleFontSizeDecrease();
-        } else if (command.includes(t("cmdReset"))) {
-          handleResetAll();
-        } else if (command.includes(t("cmdContrastDark"))) {
-          handleContrastMode(t("contrast2"));
-        } else if (command.includes(t("cmdContrastLight"))) {
-          handleContrastMode(t("contrast1"));
-        } else if (command.includes(t("cmdMonochrome"))) {
-          handleContrastMode(t("contrast3"));
-        }
-      };
-
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error("Erro no reconhecimento de voz:", event.error);
-        if (['no-speech', 'audio-capture', 'not-allowed', 'service-not-allowed', 'network'].includes(event.error)) {
-          setActiveTools(prev => prev.filter(tool => tool !== "tool6"));
-        }
-      };
-
-      recognition.onend = () => {
-        setActiveTools(currentActiveTools => {
-          if (currentActiveTools.includes("tool6")) {
-            try {
-              recognition.start();
-            } catch (e) {
-              console.error("Não foi possível reiniciar o recognition.", e);
-            }
-          }
-          return currentActiveTools;
-        });
-      };
-
-      try {
-        recognition.start();
-        console.log("Ouvindo comandos de voz...");
-      } catch (e) {
-        console.error("Comando de voz já iniciado.", e);
-      }
-
-    } else if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current.onend = null;
-      console.log("Comando de voz parado.");
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        recognitionRef.current.onend = null;
-      }
-    };
-  }, [
-    activeTools, language, t, setActiveTools,
-    handleFontSizeIncrease, handleFontSizeDecrease, handleResetAll, handleContrastMode
-  ]);
+  }, [customContrast]);
 
   useEffect(() => {
     const isKeyboardNavActive = activeTools.includes("tool2");
@@ -888,89 +703,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [activeTools]);
 
-  useEffect(() => {
-    const isSmartNavActive = activeTools.includes("tool3");
-    if (!isSmartNavActive) return;
-
-    // Remove foco anterior
-    const removeFocus = () => {
-      const focused = document.querySelector(".smart-nav-focus");
-      focused?.classList.remove("smart-nav-focus");
-    };
-
-    const handleSmartNav = (e: KeyboardEvent) => {
-      if (
-        (e.target as HTMLElement).tagName === "INPUT" ||
-        (e.target as HTMLElement).tagName === "TEXTAREA" ||
-        (e.target as HTMLElement).tagName === "SELECT" ||
-        (e.target as HTMLElement).closest(".acessibility-modal-overlay")
-      ) {
-        return;
-      }
-
-      const key = e.key.toLowerCase();
-      let selector = "";
-      let indexKey: keyof typeof smartNavIndices.current | null = null;
-
-      switch (key) {
-        case "h":
-          selector = "h1, h2, h3, h4, h5, h6";
-          indexKey = "h";
-          break;
-        case "l":
-          selector = "a[href]";
-          indexKey = "l";
-          break;
-        case "b":
-          selector = "button, [role='button']";
-          indexKey = "b";
-          break;
-        case "f":
-          selector = "input, textarea, select, [role='textbox']";
-          indexKey = "f";
-          break;
-        default:
-          return;
-      }
-
-      e.preventDefault();
-      removeFocus();
-
-      if (lastSmartNavKey.current !== key) {
-        smartNavIndices.current = { h: 0, l: 0, b: 0, f: 0 };
-      }
-      lastSmartNavKey.current = key;
-
-      const elements = Array.from(document.querySelectorAll<HTMLElement>(selector))
-        .filter(el => !el.closest(".acessibility-card"));
-
-      if (elements.length === 0) return;
-
-      let currentIndex = smartNavIndices.current[indexKey!];
-
-      if (e.shiftKey) {
-        currentIndex = (currentIndex - 1 + elements.length) % elements.length;
-      } else {
-        currentIndex = (currentIndex + 1) % elements.length;
-      }
-
-      smartNavIndices.current[indexKey!] = currentIndex;
-
-      const targetElement = elements[currentIndex];
-      if (targetElement) {
-        targetElement.focus();
-        targetElement.classList.add("smart-nav-focus");
-      }
-    };
-
-    document.addEventListener("keydown", handleSmartNav);
-
-    return () => {
-      document.removeEventListener("keydown", handleSmartNav);
-      removeFocus();
-    };
-  }, [activeTools]);
-
   // --- EXPOR VALORES ---
   const value: AccessibilityContextState = {
     language,
@@ -980,8 +712,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setActiveTools,
     customContrast,
     setCustomContrast,
-    contrastMode,
-    setContrastMode,
     fontSize,
     setFontSize,
     cursorType,
@@ -993,16 +723,12 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
 
     // Handlers
     handleToggleTool,
-    handleContrastMode,
-    handleResetColors,
     handleFontSizeIncrease,
     handleFontSizeDecrease,
     handleResetAll,
     handleHideMenu,
     handleDisableAcessibility,
-    handleShowDeclaration,
     handleSendFeedback,
-    handleColorButtonWarning,
   };
 
   return (

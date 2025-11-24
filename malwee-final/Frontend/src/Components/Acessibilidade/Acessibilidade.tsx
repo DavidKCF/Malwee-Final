@@ -30,13 +30,6 @@ const AcessibilityModal: React.FC = () => {
         >
           <i className="ri-close-line"></i>
         </button>
-        
-        {modalContent === "declaration" && (
-          <>
-            <h2>{t("modalDeclarationTitle")}</h2>
-            <p>{t("modalDeclarationText")}</p>
-          </>
-        )}
 
         {modalContent === "feedback" && (
           <>
@@ -69,21 +62,15 @@ export const Acessibilidade: React.FC = () => {
     activeTools,
     customContrast,
     setCustomContrast,
-    contrastMode,
-    setContrastMode,
     fontSize,
     cursorType,
     setCursorType,
     
     handleToggleTool,
-    handleContrastMode,
-    handleResetColors,
     handleFontSizeIncrease,
     handleFontSizeDecrease,
     handleResetAll,
-    handleShowDeclaration,
     handleSendFeedback,
-    handleColorButtonWarning,
   } = useAccessibility();
 
   return (
@@ -126,25 +113,12 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        {/* GRID DE FUNCIONALIDADES */}
+        {/* GRID DE FUNCIONALIDADES - AJUSTADO */}
         <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">
           {t("toolsTitle")}
         </h2>
 
-        {/* Tooltip para Navegação Inteligente */}
-        {activeTools.includes("tool3") && (
-            <div className="bg-[var(--surface)] border border-[var(--border)] p-3 rounded-lg mb-4 text-sm text-[var(--text-muted)]">
-                <strong>{t("smartNavHelp")}</strong>
-                <ul className="list-disc list-inside ml-2">
-                    <li>{t("smartNavH")}</li>
-                    <li>{t("smartNavL")}</li>
-                    <li>{t("smartNavB")}</li>
-                    <li>{t("smartNavF")}</li>
-                </ul>
-            </div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           {toolKeys.map((toolKey) => {
             const label = t(toolKey);
             const isActive = activeTools.includes(toolKey);
@@ -153,7 +127,7 @@ export const Acessibilidade: React.FC = () => {
                 key={toolKey}
                 onClick={() => handleToggleTool(toolKey)}
                 aria-pressed={isActive}
-                className={`flex flex-col items-center justify-center p-4 text-center border rounded-lg cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]
+                className={`flex flex-col items-center justify-center p-6 text-center border rounded-lg cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]
                   ${isActive
                     ? "bg-[var(--accent)] text-white"
                     : "bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-muted)]"
@@ -161,18 +135,18 @@ export const Acessibilidade: React.FC = () => {
                 `}
               >
                 <i
-                  className={`ri-tools-line text-2xl mb-2 ${isActive ? 'text-white' : 'text-[var(--text)]'}`}
+                  className={`ri-tools-line text-3xl mb-3 ${isActive ? 'text-white' : 'text-[var(--text)]'}`}
                 ></i>
-                <p className="text-sm">{label}</p>
+                <p className="text-base font-medium">{label}</p>
               </button>
             );
           })}
         </div>
 
-        {/* AJUSTE DE CORES */}
-        <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">{t("colorsTitle")}</h3>
+        {/* BRILHO */}
+        <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Ajuste de Brilho</h3>
         <div className="mb-8">
-          <label htmlFor="custom-contrast" className="text-sm text-[var(--text-muted)] mb-2 block">{t("customContrast")}</label>
+          <label htmlFor="custom-contrast" className="text-sm text-[var(--text-muted)] mb-2 block">Nível de Brilho</label>
           <input
             id="custom-contrast"
             type="range"
@@ -181,66 +155,9 @@ export const Acessibilidade: React.FC = () => {
             value={customContrast}
             onChange={(e) => {
               setCustomContrast(Number(e.target.value));
-              setContrastMode(null);
             }}
             className="w-full"
           />
-
-          <div className="flex gap-3 mt-3">
-            <button
-              onClick={handleColorButtonWarning}
-              disabled 
-              className="flex-1 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] transition-colors opacity-50 cursor-not-allowed"
-            >
-              {t("btnFunds")}
-            </button>
-            <button
-              onClick={handleColorButtonWarning}
-              disabled
-              className="flex-1 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] transition-colors opacity-50 cursor-not-allowed"
-            >
-              {t("btnTitles")}
-            </button>
-            <button
-              onClick={handleColorButtonWarning}
-              disabled
-              className="flex-1 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] transition-colors opacity-50 cursor-not-allowed"
-            >
-              {t("btnTexts")}
-            </button>
-          </div>
-
-          <button
-            onClick={handleResetColors}
-            className="w-full py-2 bg-[var(--accent)] hover:opacity-90 text-white mt-4 rounded-lg transition-opacity"
-          >
-            {t("btnResetColors")}
-          </button>
-        </div>
-
-        {/* CONTRASTE */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {[t("contrast1"), t("contrast2"), t("contrast3")].map(
-            (label, i) => {
-              const isActive = contrastMode === label;
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleContrastMode(label)}
-                  aria-pressed={isActive}
-                  className={`flex flex-col items-center p-4 border rounded-lg cursor-pointer text-center transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]
-                    ${isActive
-                      ? "bg-[var(--accent)] text-white"
-                      : "bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-muted)]"
-                    }
-                  `}
-                >
-                  <i className={`ri-contrast-line text-3xl mb-2 ${isActive ? 'text-white' : 'text-[var(--text)]'}`}></i>
-                  <p className="text-sm">{label}</p>
-                </button>
-              );
-            }
-          )}
         </div>
 
         {/* AJUSTES DE TEXTO */}
@@ -293,12 +210,6 @@ export const Acessibilidade: React.FC = () => {
 
         {/* FOOTER AÇÕES */}
         <div className="flex flex-col gap-3 text-center mt-6">
-          <button
-            onClick={handleShowDeclaration}
-            className="w-full py-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--border)] text-[var(--text)]"
-          >
-            {t("btnDeclaration")}
-          </button>
           <button
             onClick={handleSendFeedback}
             className="w-full py-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--border)] text-[var(--text)]"
