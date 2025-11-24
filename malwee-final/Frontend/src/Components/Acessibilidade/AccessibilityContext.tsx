@@ -9,9 +9,10 @@ import React, {
   ReactNode,
 } from "react";
 
-// --- TRADUÇÕES ---
 const translations = {
   "pt-BR": {
+    brightnesslevel: "Nível do Brilho",
+    adjustbrightness: "Ajuste do brilho",
     typeofexit: "Tipo de Saída",
     clearFilters: "Limpar Filtro",
     filter: "Filtrar",
@@ -66,7 +67,6 @@ const translations = {
     unitMin: "min",
     unitMeters: "m",
     none: "Nenhuma",
-    // Para o modal de visualização
     labelDate: "Data",
     labelMachine: "Máquina",
     labelTomatoNumber: "Nº Tomato",
@@ -253,8 +253,6 @@ const translations = {
     modalFeedbackText: "Encontrou algum problema de acessibilidade? Por favor, nos avise!",
     modalFeedbackPlaceholder: "Descreva o problema que você encontrou...",
     modalFeedbackSubmit: "Enviar",
-
-    // NOVAS TRADUÇÕES ADICIONADAS
     home: "Início",
     dashboard: "Dashboard",
     reports: "Relatórios",
@@ -264,13 +262,14 @@ const translations = {
     settings: "Configurações",
     logout: "Sair",
     toggleTheme: "Alternar Tema",
-    // TRADUÇÕES CORRIGIDAS PARA HOME
     malweeGroup: "Grupo Malwee",
     dataVisualization: "Visualização dos Dados e Demandas - Corte",
     production: "Produção",
     malweeLogoAlt: "Logo do Grupo Malwee",
   },
   "en-US": {
+    brightnesslevel: "Brightness Level",
+    adjustbrightness: "Adjust Brightness",
     typeofexit: "Type of exit",
     clearFilters: "Clear Filter",
     selectDate: "Select Date",
@@ -326,7 +325,6 @@ const translations = {
     unitMin: "min",
     unitMeters: "m",
     none: "None",
-    // Para o modal de visualização
     labelDate: "Date",
     labelMachine: "Machine",
     labelTomatoNumber: "Tomato No.",
@@ -513,8 +511,6 @@ const translations = {
     modalFeedbackText: "Encountered an accessibility issue? Please let us know!",
     modalFeedbackPlaceholder: "Describe the issue you encountered...",
     modalFeedbackSubmit: "Submit",
-
-    // NOVAS TRADUÇÕES ADICIONADAS
     home: "Home",
     dashboard: "Dashboard",
     reports: "Reports",
@@ -524,8 +520,6 @@ const translations = {
     settings: "Settings",
     logout: "Logout",
     toggleTheme: "Toggle Theme",
-
-    // TRADUÇÕES CORRIGIDAS PARA HOME
     malweeGroup: "Malwee Group",
     dataVisualization: "Data and Demands Visualization - Court",
     production: "Production",
@@ -535,7 +529,6 @@ const translations = {
 
 export const toolKeys = ["tool1", "tool2"];
 
-// --- HOOK DE ESTADO PERSISTENTE ---
 function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
@@ -558,7 +551,6 @@ function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch
   return [state, setState];
 }
 
-// --- TIPOS DO CONTEXTO ---
 type ModalType = "feedback" | null;
 
 interface AccessibilityContextState {
@@ -580,7 +572,6 @@ interface AccessibilityContextState {
   modalContent: ModalType;
   setModalContent: React.Dispatch<React.SetStateAction<ModalType>>;
 
-  // Handlers
   handleToggleTool: (toolKey: string) => void;
   handleFontSizeIncrease: () => void;
   handleFontSizeDecrease: () => void;
@@ -606,7 +597,6 @@ export function useAccessibility() {
 
 // --- O PROVIDER PRINCIPAL ---
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
-  // --- Estados ---
   const [language, setLanguage] = usePersistentState<"pt-BR" | "en-US">("acess-lang", "pt-BR");
   const [activeTools, setActiveTools] = usePersistentState<string[]>("acess-tools", []);
   const [customContrast, setCustomContrast] = usePersistentState("acess-custom-contrast", 50);
@@ -624,7 +614,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     [language]
   );
 
-  // --- Handlers ---
   const handleToggleTool = useCallback((toolKey: string) => {
     setActiveTools((prevTools) =>
       prevTools.includes(toolKey)
@@ -655,8 +644,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleSendFeedback = () => setModalContent("feedback");
-
-  // --- Efeitos (UseEffects) ---
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
@@ -703,7 +690,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [activeTools]);
 
-  // --- EXPOR VALORES ---
   const value: AccessibilityContextState = {
     language,
     setLanguage,
@@ -721,7 +707,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     modalContent,
     setModalContent,
 
-    // Handlers
     handleToggleTool,
     handleFontSizeIncrease,
     handleFontSizeDecrease,

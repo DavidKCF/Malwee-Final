@@ -469,10 +469,8 @@ export const CadastroDados: React.FC = () => {
                       </span>
                     </td>
 
-                    {/* Ações (Modais) */}
                     <td className="px-4 py-3 text-[var(--text)]">
                       <div className="flex gap-2">
-                        {/* VISUALIZAR */}
                         <ModalBase open={!!viewingItem && viewingItem.id === item.id} onOpenChange={(open) => !open && setViewingItem(null)}>
                           <ModalTriggerBase asChild>
                             <VisibilityButton 
@@ -516,7 +514,6 @@ export const CadastroDados: React.FC = () => {
                           </ModalContentBase>
                         </ModalBase>
 
-                        {/* EDITAR */}
                         <ModalBase open={!!editingItem && editingItem.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
                           <ModalTriggerBase asChild>
                             <EditButton
@@ -628,7 +625,6 @@ export const CadastroDados: React.FC = () => {
                           </ModalContentBase>
                         </ModalBase>
 
-                        {/* DELETAR */}
                         <ModalBase open={!!deletingItem && deletingItem.id === item.id} onOpenChange={(open) => !open && setDeletingItem(null)}>
                           <ModalTriggerBase asChild>
                             <CloseButton 

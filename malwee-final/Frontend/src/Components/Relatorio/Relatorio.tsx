@@ -4,6 +4,7 @@ import {
   LabelBase,
   DateTimePicker,
   Combobox,
+  CheckboxBase,
 } from "@mlw-packages/react-components";
 
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
@@ -15,8 +16,8 @@ interface Filters {
   endDate: string;
   maquina: string;
   tipoTecido: string;
-  tarefaCompleta: string;
-  sobraRolo: string;
+  tarefaCompleta: string; // "all", "true", "false"
+  sobraRolo: string; // "all", "true", "false"
   tipoSaida: string;
   search: string;
 }
@@ -70,19 +71,7 @@ export const Relatorio: React.FC = () => {
     { label: '5 - punho elan', value: '5' },
   ];
 
-  const tarefaCompletaItems = [
-    { label: 'Todos', value: 'all' },
-    { label: 'Sim', value: 'true' },
-    { label: 'Não', value: 'false' },
-  ];
-
-  const sobraRoloItems = [
-    { label: 'Todos', value: 'all' },
-    { label: 'Sim', value: 'true' },
-    { label: 'Não', value: 'false' },
-  ];
-
-  // NOVO: Opções para Tipo de Saída
+  // Opções para Tipo de Saída
   const tipoSaidaItems = [
     { label: 'Todos', value: 'all' },
     { label: '0 - rolinho', value: '0' },
@@ -124,17 +113,40 @@ export const Relatorio: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleTarefaCompletaChange = (value: string | null) => {
-    setFilters(prev => ({ ...prev, tarefaCompleta: value || 'all' }));
+  // CORRIGIDO: Handlers para os checkboxes de tarefa completa
+  const handleTarefaCompletaSimChange = (checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      tarefaCompleta: checked ? "true" : (prev.tarefaCompleta === "false" ? "false" : "all")
+    }));
     setCurrentPage(1);
   };
 
-  const handleSobraRoloChange = (value: string | null) => {
-    setFilters(prev => ({ ...prev, sobraRolo: value || 'all' }));
+  const handleTarefaCompletaNaoChange = (checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      tarefaCompleta: checked ? "false" : (prev.tarefaCompleta === "true" ? "true" : "all")
+    }));
     setCurrentPage(1);
   };
 
-  // NOVO: Handler para Tipo de Saída
+  // CORRIGIDO: Handlers para os checkboxes de sobra rolo
+  const handleSobraRoloSimChange = (checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      sobraRolo: checked ? "true" : (prev.sobraRolo === "false" ? "false" : "all")
+    }));
+    setCurrentPage(1);
+  };
+
+  const handleSobraRoloNaoChange = (checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      sobraRolo: checked ? "false" : (prev.sobraRolo === "true" ? "true" : "all")
+    }));
+    setCurrentPage(1);
+  };
+
   const handleTipoSaidaChange = (value: string | null) => {
     setFilters(prev => ({ ...prev, tipoSaida: value || 'all' }));
     setCurrentPage(1);
@@ -172,16 +184,16 @@ export const Relatorio: React.FC = () => {
       const [datePart, timePart] = dateString.split(' ');
       const [day, month, year] = datePart.split('/');
       const [hours, minutes, seconds] = timePart ? timePart.split(':') : ['00', '00', '00'];
-      
+
       const normalizedDate = new Date(
-        parseInt(year), 
-        parseInt(month) - 1, 
+        parseInt(year),
+        parseInt(month) - 1,
         parseInt(day),
         parseInt(hours),
         parseInt(minutes),
         parseInt(seconds)
       );
-      
+
       return isNaN(normalizedDate.getTime()) ? new Date(dateString) : normalizedDate;
     } catch {
       return new Date(dateString);
@@ -220,22 +232,21 @@ export const Relatorio: React.FC = () => {
         if (item.TipoTecido !== filterTecido) return false;
       }
 
-      // Filtro de Tarefa Completa
+      // Filtro de Tarefa Completa (checkbox)
       if (filters.tarefaCompleta !== "all") {
         const shouldBeComplete = filters.tarefaCompleta === "true";
         if (item.TarefaCompleta !== shouldBeComplete) return false;
       }
 
-      // Filtro de Sobra de Rolo
+      // Filtro de Sobra de Rolo (checkbox)
       if (filters.sobraRolo !== "all") {
         const shouldHaveSobra = filters.sobraRolo === "true";
         if (item.SobraRolo !== shouldHaveSobra) return false;
       }
 
-      // NOVO: Filtro de Tipo de Saída
+      // Filtro de Tipo de Saída
       if (filters.tipoSaida !== "all") {
         const filterTipoSaida = parseInt(filters.tipoSaida, 10);
-        // Assumindo que o campo se chama 'TipoSaida' no CSV
         if (item.TipoSaida !== filterTipoSaida) return false;
       }
 
@@ -250,7 +261,7 @@ export const Relatorio: React.FC = () => {
           item.TempoProducao?.toString() || '',
           item.TarefaCompleta ? 'sim completo' : 'não incompleto',
           item.SobraRolo ? 'sobra' : 'sem sobra',
-          item.TipoSaida ? (item.TipoSaida === 0 ? 'rolinho' : 'fraldado') : '', // NOVO: incluir tipo de saída na busca
+          item.TipoSaida ? (item.TipoSaida === 0 ? 'rolinho' : 'fraldado') : '',
           new Date(item.Data).toLocaleDateString('pt-BR')
         ].join(' ').toLowerCase();
 
@@ -279,12 +290,12 @@ export const Relatorio: React.FC = () => {
     }
   };
 
-  // Handlers de Exportação (mantidos iguais)
+  // Handlers de Exportação
   const handleCopy = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída' // NOVO: adicionar tipo de saída na exportação
+      'Tipo Saída'
     ].join('\t');
 
     const tsvRows = filteredData.map(item => [
@@ -296,7 +307,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       item.TarefaCompleta ? t('yes') : t('no'),
-      item.TipoSaida === 0 ? 'rolinho' : 'fraldado' // NOVO: adicionar tipo de saída
+      item.TipoSaida === 0 ? 'rolinho' : 'fraldado'
     ].join('\t'));
 
     const tsv = [headers, ...tsvRows].join('\n');
@@ -327,7 +338,7 @@ export const Relatorio: React.FC = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída' // NOVO
+      'Tipo Saída'
     ];
 
     const csvRows = filteredData.map(item => [
@@ -339,7 +350,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
-      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"` // NOVO
+      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"`
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
@@ -359,7 +370,7 @@ export const Relatorio: React.FC = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída' // NOVO
+      'Tipo Saída'
     ];
 
     const csvRows = filteredData.map(item => [
@@ -371,7 +382,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
-      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"` // NOVO
+      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"`
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
@@ -417,7 +428,7 @@ export const Relatorio: React.FC = () => {
         <p className="mt-3 text-[18px] font-semibold text-[var(--text)]">{t('productionReport')}</p>
       </header>
 
-      {/* Seção de Filtros */}
+      {/* Seção de Filtros - CORRIGIDA COM DOIS CHECKBOXES PARA CADA */}
       <section className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 mb-8 shadow-md">
         <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">{t('searchFilter')}</h2>
         <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -481,37 +492,29 @@ export const Relatorio: React.FC = () => {
             />
           </div>
 
-          {/* Tarefa Completa */}
+          {/* Tarefa Completa - DOIS CHECKBOXES */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("taskComplete")}
             </LabelBase>
-            <Combobox
-              items={tarefaCompletaItems}
-              selected={filters.tarefaCompleta}
-              onChange={handleTarefaCompletaChange}
-              label=""
-              placeholder={t("selectOption")}
-              searchPlaceholder={t("searchPlaceholder")}
-            />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <CheckboxBase
+                  checked={filters.tarefaCompleta === "true"}
+                  onCheckedChange={handleTarefaCompletaSimChange}
+                />
+                <span className="text-sm text-[var(--text)]">Completas</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckboxBase
+                  checked={filters.tarefaCompleta === "false"}
+                  onCheckedChange={handleTarefaCompletaNaoChange}
+                />
+                <span className="text-sm text-[var(--text)]">Incompletas</span>
+              </div>
+            </div>
           </div>
 
-          {/* Sobra de Rolo */}
-          <div>
-            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
-              {t("rollWaste")}
-            </LabelBase>
-            <Combobox
-              items={sobraRoloItems}
-              selected={filters.sobraRolo}
-              onChange={handleSobraRoloChange}
-              label=""
-              placeholder={t("selectOption")}
-              searchPlaceholder={t("searchPlaceholder")}
-            />
-          </div>
-
-          {/* NOVO: Tipo de Saída */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("typeofexit")}
@@ -525,6 +528,30 @@ export const Relatorio: React.FC = () => {
               searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
+
+          {/* Sobra de Rolo - DOIS CHECKBOXES */}
+          <div>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+              {t("rollWaste")}
+            </LabelBase>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <CheckboxBase
+                  checked={filters.sobraRolo === "true"}
+                  onCheckedChange={handleSobraRoloSimChange}
+                />
+                <span className="text-sm text-[var(--text)]">Com sobra</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckboxBase
+                  checked={filters.sobraRolo === "false"}
+                  onCheckedChange={handleSobraRoloNaoChange}
+                />
+                <span className="text-sm text-[var(--text)]">Sem sobra</span>
+              </div>
+            </div>
+          </div>
+
 
           {/* Botão Limpar Filtros */}
           <div className="flex items-end">
@@ -635,13 +662,12 @@ export const Relatorio: React.FC = () => {
                         {item.TarefaCompleta ? t('yes') : t('no')}
                       </span>
                     </td>
-                    {/* NOVO: Coluna Tipo de Saída */}
+                    {/* Coluna Tipo de Saída */}
                     <td className="px-4 py-3 text-[var(--text)]">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.TipoSaida === 0 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-purple-100 text-purple-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.TipoSaida === 0
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                        }`}>
                         {item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}
                       </span>
                     </td>

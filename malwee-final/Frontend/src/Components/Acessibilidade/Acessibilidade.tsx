@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Footer } from "../Footer/Footer";
 import { useAccessibility, toolKeys } from "./AccessibilityContext";
+import { SlideBase } from '@mlw-packages/react-components';
 
-// Componente do Modal (separado para clareza)
 const AcessibilityModal: React.FC = () => {
   const { modalContent, setModalContent, t } = useAccessibility();
   const [feedbackText, setFeedbackText] = useState("");
@@ -65,7 +65,7 @@ export const Acessibilidade: React.FC = () => {
     fontSize,
     cursorType,
     setCursorType,
-    
+
     handleToggleTool,
     handleFontSizeIncrease,
     handleFontSizeDecrease,
@@ -75,7 +75,6 @@ export const Acessibilidade: React.FC = () => {
 
   return (
     <main className="flex flex-col min-h-screen ml-[80px] bg-[var(--surface)] text-[var(--text)]">
-      {/* HEADER */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">Grupo Malwee</h1>
         <p className="text-[var(--text-muted)] text-lg">
@@ -86,10 +85,8 @@ export const Acessibilidade: React.FC = () => {
         </p>
       </header>
 
-      {/* CARD PRINCIPAL */}
       <section className="acessibility-card bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 shadow-md">
 
-        {/* Seletores do topo */}
         <div className="flex justify-between items-center mb-6">
           <select
             value={language}
@@ -113,7 +110,6 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        {/* GRID DE FUNCIONALIDADES - AJUSTADO */}
         <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">
           {t("toolsTitle")}
         </h2>
@@ -143,24 +139,17 @@ export const Acessibilidade: React.FC = () => {
           })}
         </div>
 
-        {/* BRILHO */}
-        <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Ajuste de Brilho</h3>
+        <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">{t('adjustbrightness')}</h3>
         <div className="mb-8">
-          <label htmlFor="custom-contrast" className="text-sm text-[var(--text-muted)] mb-2 block">Nível de Brilho</label>
-          <input
+          <SlideBase
+            defaultValue={[customContrast]}
+            max={100}
             id="custom-contrast"
             type="range"
-            min="0"
-            max="100"
-            value={customContrast}
-            onChange={(e) => {
-              setCustomContrast(Number(e.target.value));
-            }}
-            className="w-full"
+            onValueChange={(value) => setCustomContrast(value[0])}
           />
         </div>
 
-        {/* AJUSTES DE TEXTO */}
         <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">{t("contentTitle")}</h3>
         <div className="mb-8">
           <p className="text-sm mb-2 text-[var(--text-muted)]">{t("fontSize")}</p>
@@ -183,7 +172,6 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        {/* CURSOR */}
         <div className="mb-8">
           <p className="text-sm mb-2 text-[var(--text-muted)]">{t("cursor")}</p>
           <div className="flex gap-3">
@@ -208,7 +196,6 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        {/* FOOTER AÇÕES */}
         <div className="flex flex-col gap-3 text-center mt-6">
           <button
             onClick={handleSendFeedback}
@@ -221,7 +208,6 @@ export const Acessibilidade: React.FC = () => {
         <Footer />
       </section>
 
-      {/* RENDERIZAÇÃO DO MODAL */}
       <AcessibilityModal />
     </main>
   );
