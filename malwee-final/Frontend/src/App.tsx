@@ -8,7 +8,6 @@ import { Home } from "./Components/Home/Home";
 import { Dashboard } from "./Components/DashBoard/Dashboard";
 import { Sidebar } from "./Components/Sidebar/Sidebar";
 import { Relatorio } from "./Components/Relatorio/Relatorio";
-import { Producoes } from "./Components/Produções/Producoes";
 import { CadastroDados } from "../../Frontend/src/Components/CadastroDados/CadastroDados";
 import { Acessibilidade } from "../../Frontend/src/Components/Acessibilidade/Acessibilidade";
 import { Usuario } from "../../Frontend/src/Components/Usuario/Usuario";
@@ -25,7 +24,6 @@ function LayoutWithSidebar() {
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/relatorios" element={<Relatorio />} />
-          <Route path="/producoes" element={<Producoes />} />
           <Route path="/cadastrodados" element={<CadastroDados />} />
           <Route path="/acessibilidade" element={<Acessibilidade />} />
           <Route path="/usuario" element={<Usuario />} />

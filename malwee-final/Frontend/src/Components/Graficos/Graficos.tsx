@@ -313,7 +313,7 @@ export const Graficos: React.FC = () => {
                         labelMap={{
                             producao: t('productionMeters')
                         }}
-                        colors={["#3b82f6"]}
+                        colors={["#2273E1"]}
                         height={350}
                     />
                 </div>
@@ -327,6 +327,7 @@ export const Graficos: React.FC = () => {
                             data={eficienciaDataMalwee}
                             xAxis="periodo"
                             height={300}
+                            colors={["#55AF7D"]}
                         />
                     </div>
                 </div>
@@ -345,6 +346,7 @@ export const Graficos: React.FC = () => {
                             series={{ bar: ['producao'] }}
                             labelMap={{ producao: t('productionMeters') }}
                             height={200}
+                            colors={["#55AF7D"]}
                         />
                     </div>
                 </div>
@@ -359,7 +361,7 @@ export const Graficos: React.FC = () => {
                             xAxis="periodo"
                             series={{ area: ['sobras'] }}
                             labelMap={{ sobras: t('rollWaste') }}
-                            colors={["#06b6d4"]}
+                            colors={["#8E68FF"]}
                             height={200}
                         />
                     </div>
@@ -375,7 +377,7 @@ export const Graficos: React.FC = () => {
                             xAxis="localidade"
                             series={{ bar: ['producao'] }}
                             labelMap={{ producao: t('productionMeters') }}
-                            colors={["#3b82f6"]}
+                            colors={["#2273E1"]}
                             height={200}
                         />
                     </div>
@@ -394,7 +396,7 @@ export const Graficos: React.FC = () => {
                             xAxis="periodo"
                             series={{ line: ['setup'] }}
                             labelMap={{ setup: t('setupTimeMinutes') }}
-                            colors={["#10b981"]}
+                            colors={["#55AF7D"]}
                             height={200}
                         />
                     </div>
@@ -410,7 +412,7 @@ export const Graficos: React.FC = () => {
                             xAxis="periodo"
                             series={{ bar: ['tiras'] }}
                             labelMap={{ tiras: t('stripQuantity') }}
-                            colors={["#ef4444"]}
+                            colors={["#8E68FF"]}
                             height={200}
                         />
                     </div>

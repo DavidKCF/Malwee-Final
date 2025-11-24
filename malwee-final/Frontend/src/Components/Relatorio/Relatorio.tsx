@@ -17,6 +17,7 @@ interface Filters {
   tipoTecido: string;
   tarefaCompleta: string;
   sobraRolo: string;
+  tipoSaida: string;
   search: string;
 }
 
@@ -46,6 +47,7 @@ export const Relatorio: React.FC = () => {
     tipoTecido: "all",
     tarefaCompleta: "all",
     sobraRolo: "all",
+    tipoSaida: "all",
     search: "",
   });
 
@@ -60,9 +62,12 @@ export const Relatorio: React.FC = () => {
   // Opções para os combobox
   const tipoTecidoItems = [
     { label: 'Todos', value: 'all' },
-    { label: '1', value: '1' },
-    { label: '2', value: '2' },
-    { label: '3', value: '3' },
+    { label: '0 - meia malha', value: '0' },
+    { label: '1 - cotton', value: '1' },
+    { label: '2 - punho pun', value: '2' },
+    { label: '3 - punho new', value: '3' },
+    { label: '4 - punho san', value: '4' },
+    { label: '5 - punho elan', value: '5' },
   ];
 
   const tarefaCompletaItems = [
@@ -75,6 +80,13 @@ export const Relatorio: React.FC = () => {
     { label: 'Todos', value: 'all' },
     { label: 'Sim', value: 'true' },
     { label: 'Não', value: 'false' },
+  ];
+
+  // NOVO: Opções para Tipo de Saída
+  const tipoSaidaItems = [
+    { label: 'Todos', value: 'all' },
+    { label: '0 - rolinho', value: '0' },
+    { label: '1 - fraldado', value: '1' },
   ];
 
   // --- Efeitos ---
@@ -94,33 +106,38 @@ export const Relatorio: React.FC = () => {
 
   const handleStartDateChange = (value: string) => {
     setFilters(prev => ({ ...prev, startDate: value }));
+    setCurrentPage(1);
   };
 
   const handleEndDateChange = (value: string) => {
     setFilters(prev => ({ ...prev, endDate: value }));
+    setCurrentPage(1);
   };
 
-  // CORREÇÃO AQUI: Remove o ChangeEvent e recebe o valor diretamente
   const handleMaquinaChange = (value: string) => {
     setFilters(prev => ({ ...prev, maquina: value }));
+    setCurrentPage(1);
   };
 
   const handleTipoTecidoChange = (value: string | null) => {
-    if (value !== null) {
-      setFilters(prev => ({ ...prev, tipoTecido: value }));
-    }
+    setFilters(prev => ({ ...prev, tipoTecido: value || 'all' }));
+    setCurrentPage(1);
   };
 
   const handleTarefaCompletaChange = (value: string | null) => {
-    if (value !== null) {
-      setFilters(prev => ({ ...prev, tarefaCompleta: value }));
-    }
+    setFilters(prev => ({ ...prev, tarefaCompleta: value || 'all' }));
+    setCurrentPage(1);
   };
 
   const handleSobraRoloChange = (value: string | null) => {
-    if (value !== null) {
-      setFilters(prev => ({ ...prev, sobraRolo: value }));
-    }
+    setFilters(prev => ({ ...prev, sobraRolo: value || 'all' }));
+    setCurrentPage(1);
+  };
+
+  // NOVO: Handler para Tipo de Saída
+  const handleTipoSaidaChange = (value: string | null) => {
+    setFilters(prev => ({ ...prev, tipoSaida: value || 'all' }));
+    setCurrentPage(1);
   };
 
   // Handler para limpar os filtros
@@ -132,6 +149,7 @@ export const Relatorio: React.FC = () => {
       tipoTecido: "all",
       tarefaCompleta: "all",
       sobraRolo: "all",
+      tipoSaida: "all",
       search: "",
     });
     setCurrentPage(1);
@@ -143,54 +161,100 @@ export const Relatorio: React.FC = () => {
       ...prev,
       search: e.target.value,
     }));
+    setCurrentPage(1);
   };
 
   // --- Lógica de Filtro e Paginação ---
 
+  // Função auxiliar para normalizar datas
+  const normalizeDate = (dateString: string): Date => {
+    try {
+      const [datePart, timePart] = dateString.split(' ');
+      const [day, month, year] = datePart.split('/');
+      const [hours, minutes, seconds] = timePart ? timePart.split(':') : ['00', '00', '00'];
+      
+      const normalizedDate = new Date(
+        parseInt(year), 
+        parseInt(month) - 1, 
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        parseInt(seconds)
+      );
+      
+      return isNaN(normalizedDate.getTime()) ? new Date(dateString) : normalizedDate;
+    } catch {
+      return new Date(dateString);
+    }
+  };
+
   // Memoiza os dados filtrados
   const filteredData = useMemo(() => {
+    if (!producaoData.length) return [];
+
     return producaoData.filter(item => {
-      const s = filters.search.toLowerCase();
+      const searchTerm = filters.search.toLowerCase().trim();
 
       // Filtro de Data Início
       if (filters.startDate) {
         const startDate = new Date(filters.startDate + "T00:00:00");
-        const itemDate = new Date(item.Data);
+        const itemDate = normalizeDate(item.Data);
         if (itemDate < startDate) return false;
       }
+
       // Filtro de Data Fim
       if (filters.endDate) {
         const endDate = new Date(filters.endDate + "T23:59:59");
-        const itemDate = new Date(item.Data);
+        const itemDate = normalizeDate(item.Data);
         if (itemDate > endDate) return false;
       }
+
       // Filtro de Máquina
       if (filters.maquina !== "all" && item.Maquina !== filters.maquina) {
         return false;
       }
+
       // Filtro de Tipo Tecido
-      if (filters.tipoTecido !== "all" && item.TipoTecido !== parseInt(filters.tipoTecido, 10)) {
-        return false;
+      if (filters.tipoTecido !== "all") {
+        const filterTecido = parseInt(filters.tipoTecido, 10);
+        if (item.TipoTecido !== filterTecido) return false;
       }
+
       // Filtro de Tarefa Completa
       if (filters.tarefaCompleta !== "all") {
-        if (item.TarefaCompleta !== (filters.tarefaCompleta === "true")) return false;
+        const shouldBeComplete = filters.tarefaCompleta === "true";
+        if (item.TarefaCompleta !== shouldBeComplete) return false;
       }
+
       // Filtro de Sobra de Rolo
       if (filters.sobraRolo !== "all") {
-        if (item.SobraRolo !== (filters.sobraRolo === "true")) return false;
+        const shouldHaveSobra = filters.sobraRolo === "true";
+        if (item.SobraRolo !== shouldHaveSobra) return false;
       }
 
-      // Filtro de Pesquisa (search)
-      if (s) {
-        const searchString = [
-          item.Maquina,
-          item.NumeroTarefa.toString(),
-          item.TipoTecido.toString(),
-          item.MetrosProduzidos.toString()
+      // NOVO: Filtro de Tipo de Saída
+      if (filters.tipoSaida !== "all") {
+        const filterTipoSaida = parseInt(filters.tipoSaida, 10);
+        // Assumindo que o campo se chama 'TipoSaida' no CSV
+        if (item.TipoSaida !== filterTipoSaida) return false;
+      }
+
+      // Filtro de Pesquisa
+      if (searchTerm) {
+        const searchableFields = [
+          item.Maquina || '',
+          item.NumeroTarefa?.toString() || '',
+          item.TipoTecido?.toString() || '',
+          item.MetrosProduzidos?.toString() || '',
+          item.TempoSetup?.toString() || '',
+          item.TempoProducao?.toString() || '',
+          item.TarefaCompleta ? 'sim completo' : 'não incompleto',
+          item.SobraRolo ? 'sobra' : 'sem sobra',
+          item.TipoSaida ? (item.TipoSaida === 0 ? 'rolinho' : 'fraldado') : '', // NOVO: incluir tipo de saída na busca
+          new Date(item.Data).toLocaleDateString('pt-BR')
         ].join(' ').toLowerCase();
 
-        if (!searchString.includes(s)) return false;
+        if (!searchableFields.includes(searchTerm)) return false;
       }
 
       return true;
@@ -215,11 +279,12 @@ export const Relatorio: React.FC = () => {
     }
   };
 
-  // Handlers de Exportação
+  // Handlers de Exportação (mantidos iguais)
   const handleCopy = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
-      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete')
+      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
+      'Tipo Saída' // NOVO: adicionar tipo de saída na exportação
     ].join('\t');
 
     const tsvRows = filteredData.map(item => [
@@ -230,7 +295,8 @@ export const Relatorio: React.FC = () => {
       item.TempoSetup,
       item.TempoProducao,
       item.MetrosProduzidos,
-      item.TarefaCompleta ? t('yes') : t('no')
+      item.TarefaCompleta ? t('yes') : t('no'),
+      item.TipoSaida === 0 ? 'rolinho' : 'fraldado' // NOVO: adicionar tipo de saída
     ].join('\t'));
 
     const tsv = [headers, ...tsvRows].join('\n');
@@ -260,7 +326,8 @@ export const Relatorio: React.FC = () => {
   const handleExportCSV = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
-      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete')
+      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
+      'Tipo Saída' // NOVO
     ];
 
     const csvRows = filteredData.map(item => [
@@ -271,7 +338,8 @@ export const Relatorio: React.FC = () => {
       item.TempoSetup,
       item.TempoProducao,
       item.MetrosProduzidos,
-      `"${item.TarefaCompleta ? t('yes') : t('no')}"`
+      `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
+      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"` // NOVO
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
@@ -290,7 +358,8 @@ export const Relatorio: React.FC = () => {
   const handleExportExcel = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
-      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete')
+      t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
+      'Tipo Saída' // NOVO
     ];
 
     const csvRows = filteredData.map(item => [
@@ -301,12 +370,12 @@ export const Relatorio: React.FC = () => {
       item.TempoSetup,
       item.TempoProducao,
       item.MetrosProduzidos,
-      `"${item.TarefaCompleta ? t('yes') : t('no')}"`
+      `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
+      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"` // NOVO
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
 
-    // Para Excel, usamos .xls mas na verdade é CSV com extensão .xls
     const blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -319,13 +388,12 @@ export const Relatorio: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    // Implementação básica de PDF - em produção você pode usar bibliotecas como jsPDF
     const content = `
       ${t('productionReport')}
       
-      ${t('date')} | ${t('machine')} | ${t('fabricType')} | ${t('taskNumber')} | ${t('setupTime')} | ${t('productionTime')} | ${t('metersProduced')} | ${t('complete')}
+      ${t('date')} | ${t('machine')} | ${t('fabricType')} | ${t('taskNumber')} | ${t('setupTime')} | ${t('productionTime')} | ${t('metersProduced')} | ${t('complete')} | Tipo Saída
       ${filteredData.map(item =>
-      `${new Date(item.Data).toLocaleString('pt-BR')} | ${item.Maquina || "-"} | ${item.TipoTecido} | ${item.NumeroTarefa} | ${item.TempoSetup} | ${item.TempoProducao} | ${item.MetrosProduzidos} | ${item.TarefaCompleta ? t('yes') : t('no')}`
+      `${new Date(item.Data).toLocaleString('pt-BR')} | ${item.Maquina || "-"} | ${item.TipoTecido} | ${item.NumeroTarefa} | ${item.TempoSetup} | ${item.TempoProducao} | ${item.MetrosProduzidos} | ${item.TarefaCompleta ? t('yes') : t('no')} | ${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}`
     ).join('\n')}
     `;
 
@@ -443,6 +511,21 @@ export const Relatorio: React.FC = () => {
             />
           </div>
 
+          {/* NOVO: Tipo de Saída */}
+          <div>
+            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
+              Tipo de Saída
+            </LabelBase>
+            <Combobox
+              items={tipoSaidaItems}
+              selected={filters.tipoSaida}
+              onChange={handleTipoSaidaChange}
+              label=""
+              placeholder="Selecionar tipo"
+              searchPlaceholder={t("searchPlaceholder")}
+            />
+          </div>
+
           {/* Botão Limpar Filtros */}
           <div className="flex items-end">
             <ButtonBase
@@ -510,24 +593,25 @@ export const Relatorio: React.FC = () => {
                 <th className="px-4 py-3 text-left font-medium">{t('productionTime')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('metersProduced')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('complete')}</th>
+                <th className="px-4 py-3 text-left font-medium">Tipo Saída</th> {/* NOVO */}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr className="border-t border-[var(--border)]">
-                  <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                  <td colSpan={9} className="px-4 py-8 text-center text-[var(--text-muted)]">
                     {t('loadingData')}
                   </td>
                 </tr>
               ) : error ? (
                 <tr className="border-t border-[var(--border)]">
-                  <td colSpan={8} className="px-4 py-8 text-center text-red-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-red-500">
                     {t('error')}: {error}
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr className="border-t border-[var(--border)]">
-                  <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                  <td colSpan={9} className="px-4 py-8 text-center text-[var(--text-muted)]">
                     {t('noResults')}
                   </td>
                 </tr>
@@ -549,6 +633,16 @@ export const Relatorio: React.FC = () => {
                         : 'bg-red-100 text-red-800'
                         }`}>
                         {item.TarefaCompleta ? t('yes') : t('no')}
+                      </span>
+                    </td>
+                    {/* NOVO: Coluna Tipo de Saída */}
+                    <td className="px-4 py-3 text-[var(--text)]">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.TipoSaida === 0 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}
                       </span>
                     </td>
                   </tr>

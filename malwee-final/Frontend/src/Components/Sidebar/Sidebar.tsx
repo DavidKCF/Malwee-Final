@@ -65,18 +65,6 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
-          {/* Produções */}
-          <Link
-            to="/producoes"
-            className="flex items-center gap-4 text-[var(--text-muted)] py-3 px-3 rounded-lg 
-                       hover:bg-[var(--surface)] hover:text-[var(--accent2)] transition-all duration-300"
-          >
-            <i className="ri-clipboard-line text-[22px] min-w-[40px] flex justify-center"></i>
-            <span className="opacity-0 group-hover:opacity-100 text-[15px] text-[var(--text)] transition-opacity duration-300 whitespace-nowrap">
-              {t('productions')}
-            </span>
-          </Link>
-
           {/* Cadastro de dados */}
           <Link
             to="/cadastrodados"
@@ -118,21 +106,21 @@ export const Sidebar: React.FC = () => {
         <div className="mt-auto flex flex-col gap-4 px-4 pb-6 text-[var(--text-muted)] text-sm w-full">
 
           {/* Logout */}
-          <button
-            onClick={handleLogout}
+          <Link
+            to="/login"
             className="group flex items-center justify-start gap-3 w-full text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors px-3 py-2 bg-transparent border-none cursor-pointer">
-            <i className="ri-logout-box-r-line text-lg"></i>
+            <i className="ri-logout-box-r-line text-[22px] min-w-[40px] flex justify-center"></i>
             <span className="ml-2 text-[15px] text-[var(--text)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {t('logout')}
             </span>
-          </button>
+          </Link>
 
           {/* Botão alternar tema */}
           <button
             onClick={toggleTheme}
             className="group flex items-center justify-start gap-3 w-full text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors px-3 py-2"
           >
-            <i className={`ri-${theme === "light" ? "moon-line" : "sun-line"} text-lg`}></i>
+            <i className={`ri-${theme === "light" ? "moon-line" : "sun-line"} text-[22px] min-w-[40px] flex justify-center`}></i>
             <span className="ml-2 text-[15px] text-[var(--text)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {t('toggleTheme')}
             </span>

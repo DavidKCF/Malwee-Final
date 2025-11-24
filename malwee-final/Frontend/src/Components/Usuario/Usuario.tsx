@@ -85,17 +85,17 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Botões do Modal com ButtonBase */}
+        {/* Botões do Modal com ButtonBase - HOVERS MELHORADOS */}
         <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-[var(--border)]">
           <ButtonBase
             onClick={onClose}
-            className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
+            className="bg-[var(--surface)] hover:bg-[var(--accent)]/20 hover:border-[var(--accent)]/50 text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md"
           >
             {t('cancel')}
           </ButtonBase>
           <ButtonBase
             onClick={handleSubmit}
-            className="bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90 px-5 py-2 rounded-lg transition-opacity"
+            className="bg-[var(--accent)] text-[var(--on-accent)] hover:bg-[var(--accent)]/90 hover:shadow-lg px-5 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 font-medium"
           >
             {t('saveNewPassword')}
           </ButtonBase>
@@ -110,8 +110,6 @@ interface UserData {
   login: string;
   dataNascimento: string;
   nome: string;
-  celular: string;
-  telefone: string;
   prestador: string;
 }
 
@@ -128,7 +126,7 @@ export const Usuario: React.FC = () => {
 
   const initialData: UserData = {
     login: "",
-    dataNascimento: "2019-09-04",
+    dataNascimento: "2007-09-04",
     nome: "",
     celular: "(21) 98664-8888",
     telefone: "(21) 3215-8788",
@@ -241,7 +239,7 @@ export const Usuario: React.FC = () => {
               </p>
             </header>
 
-            {/* Foto e botão com ButtonBase */}
+            {/* Foto e botão com ButtonBase - HOVER MELHORADO */}
             <div className="flex items-center gap-6 mb-6">
               <img
                 src={UserAvatar}
@@ -250,7 +248,7 @@ export const Usuario: React.FC = () => {
               />
               <ButtonBase
                 onClick={handleChangePassword}
-                className="ml-auto bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90 px-4 py-2 rounded-lg transition-opacity"
+                className="ml-auto bg-[var(--accent)] text-[var(--on-accent)] hover:bg-[var(--accent)]/90 hover:shadow-lg px-4 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 font-medium"
               >
                 {t('changePassword')}
               </ButtonBase>
@@ -298,33 +296,6 @@ export const Usuario: React.FC = () => {
                 />
               </div>
 
-              {/* ... (Restante dos inputs: celular, telefone, prestador e botões permanecem iguais) ... */}
-              <div>
-                <label className="block text-sm text-[var(--text-muted)] mb-2">
-                  {t('cellphone')}
-                </label>
-                <input
-                  type="text"
-                  name="celular"
-                  value={formData.celular}
-                  onChange={handleChange}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-muted)] mb-2">
-                  {t('phone')}
-                </label>
-                <input
-                  type="text"
-                  name="telefone"
-                  value={formData.telefone}
-                  onChange={handleChange}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm text-[var(--text-muted)] mb-2">
                   {t('provider')}
@@ -341,16 +312,17 @@ export const Usuario: React.FC = () => {
               </div>
             </div>
 
+            {/* Botões principais - HOVERS MELHORADOS */}
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-[var(--border)]">
               <ButtonBase
                 onClick={handleClear}
-                className="bg-[var(--surface)] hover:bg-[var(--border)] text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-colors"
+                className="bg-[var(--surface)] hover:bg-[var(--accent)]/20 hover:border-[var(--accent)]/50 text-[var(--text)] px-5 py-2 rounded-lg border border-[var(--border)] transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md"
               >
                 {t('clear')}
               </ButtonBase>
               <ButtonBase
                 onClick={handleSave}
-                className="bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90 px-5 py-2 rounded-lg transition-opacity"
+                className="bg-[var(--accent)] text-[var(--on-accent)] hover:bg-[var(--accent)]/90 hover:shadow-lg px-5 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 font-medium"
               >
                 {t('save')}
               </ButtonBase>

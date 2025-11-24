@@ -1,5 +1,4 @@
-// Frontend/src/Components/Relatorio/RelatorioProducao.tsx
-import React, { useState, useMemo, ChangeEvent } from 'react';
+import React, { useState, useMemo, ChangeEvent, useEffect } from 'react';
 import { ButtonBase } from "@mlw-packages/react-components";
 import { useProducaoData } from '../../hooks/useProducaoData';
 import { useAccessibility } from '../Acessibilidade/AccessibilityContext';
@@ -14,6 +13,7 @@ interface Filters {
     maquina: string;
     tipoTecido: string;
     tarefaCompleta: string;
+    tipoSaida: string; // NOVO
     search: string;
 }
 
@@ -27,6 +27,7 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
         maquina: "all",
         tipoTecido: "all",
         tarefaCompleta: "all",
+        tipoSaida: "all", // NOVO
         search: "",
     });
 
@@ -37,7 +38,7 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
     const [maquinaOptions, setMaquinaOptions] = useState<string[]>([]);
 
     // Efeito para extrair opções únicas dos dados carregados
-    React.useEffect(() => {
+    useEffect(() => {
         if (data.length > 0) {
             const maquinas = [...new Set(data.map(item => item.Maquina).filter(Boolean))];
             setMaquinaOptions(maquinas);
@@ -48,57 +49,112 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
         const file = event.target.files?.[0];
         if (file) {
             uploadFile(file);
+            // Resetar filtros após upload
+            setFilters({
+                startDate: "",
+                endDate: "",
+                maquina: "all",
+                tipoTecido: "all",
+                tarefaCompleta: "all",
+                tipoSaida: "all", // NOVO
+                search: "",
+            });
+            setCurrentPage(1);
         }
     };
 
-    // Cálculos para métricas
-    const totalRegistros = data.length;
-    const totalMetros = data.reduce((sum, item) => sum + item.MetrosProduzidos, 0);
-    const totalTempoProducao = data.reduce((sum, item) => sum + item.TempoProducao, 0);
-    const totalTempoSetup = data.reduce((sum, item) => sum + item.TempoSetup, 0);
-    const eficiencia = totalTempoProducao > 0 ?
-        (totalTempoProducao / (totalTempoProducao + totalTempoSetup)) * 100 : 0;
+    // Função auxiliar para normalizar datas
+    const normalizeDate = (dateString: string): Date => {
+        try {
+            const [datePart, timePart] = dateString.split(' ');
+            const [day, month, year] = datePart.split('/');
+            const [hours, minutes, seconds] = timePart ? timePart.split(':') : ['00', '00', '00'];
+            
+            const normalizedDate = new Date(
+                parseInt(year), 
+                parseInt(month) - 1, 
+                parseInt(day),
+                parseInt(hours),
+                parseInt(minutes),
+                parseInt(seconds)
+            );
+            
+            return isNaN(normalizedDate.getTime()) ? new Date(dateString) : normalizedDate;
+        } catch {
+            return new Date(dateString);
+        }
+    };
 
-    // Filtros
+    // Cálculos para métricas - usar dados filtrados para métricas
     const filteredData = useMemo(() => {
-        setCurrentPage(1); // Reseta a página ao aplicar filtros
+        if (!data.length) return [];
 
         return data.filter(item => {
-            const searchLower = filters.search.toLowerCase();
+            const searchLower = filters.search.toLowerCase().trim();
 
             // Filtro de Data Início
             if (filters.startDate) {
                 const startDate = new Date(filters.startDate + "T00:00:00");
-                const itemDate = new Date(item.Data);
+                const itemDate = normalizeDate(item.Data);
                 if (itemDate < startDate) return false;
             }
             // Filtro de Data Fim
             if (filters.endDate) {
                 const endDate = new Date(filters.endDate + "T23:59:59");
-                const itemDate = new Date(item.Data);
+                const itemDate = normalizeDate(item.Data);
                 if (itemDate > endDate) return false;
             }
             // Filtro de Máquina
             if (filters.maquina !== "all" && item.Maquina !== filters.maquina) return false;
             // Filtro de Tipo Tecido
-            if (filters.tipoTecido !== "all" && item.TipoTecido !== parseInt(filters.tipoTecido, 10)) return false;
+            if (filters.tipoTecido !== "all") {
+                const tipoTecidoMap: { [key: string]: number } = {
+                    'meia malha': 0,
+                    'cotton': 1,
+                    'punho pun': 2,
+                    'punho new': 3,
+                    'punho san': 4,
+                    'punho elan': 5
+                };
+                const expectedValue = tipoTecidoMap[filters.tipoTecido];
+                if (item.TipoTecido !== expectedValue) return false;
+            }
             // Filtro de Tarefa Completa
             if (filters.tarefaCompleta !== "all") {
-                if (item.TarefaCompleta !== (filters.tarefaCompleta === "true")) return false;
+                const shouldBeComplete = filters.tarefaCompleta === "true";
+                if (item.TarefaCompleta !== shouldBeComplete) return false;
+            }
+            // NOVO: Filtro de Tipo de Saída
+            if (filters.tipoSaida !== "all") {
+                const filterTipoSaida = parseInt(filters.tipoSaida, 10);
+                if (item.TipoSaida !== filterTipoSaida) return false;
             }
             // Filtro de Pesquisa
             if (searchLower) {
                 const searchString = [
-                    item.Maquina,
-                    item.NumeroTarefa.toString(),
-                    item.TipoTecido.toString(),
-                    item.MetrosProduzidos.toString()
+                    item.Maquina || '',
+                    item.NumeroTarefa?.toString() || '',
+                    item.TipoTecido?.toString() || '',
+                    item.MetrosProduzidos?.toString() || '',
+                    item.TempoSetup?.toString() || '',
+                    item.TempoProducao?.toString() || '',
+                    item.TarefaCompleta ? 'sim completo' : 'não incompleto',
+                    item.TipoSaida ? (item.TipoSaida === 0 ? 'rolinho' : 'fraldado') : '', // NOVO
+                    new Date(item.Data).toLocaleDateString('pt-BR')
                 ].join(' ').toLowerCase();
                 if (!searchString.includes(searchLower)) return false;
             }
             return true;
         });
     }, [data, filters]);
+
+    // Métricas baseadas nos dados filtrados
+    const totalRegistros = filteredData.length;
+    const totalMetros = filteredData.reduce((sum, item) => sum + item.MetrosProduzidos, 0);
+    const totalTempoProducao = filteredData.reduce((sum, item) => sum + item.TempoProducao, 0);
+    const totalTempoSetup = filteredData.reduce((sum, item) => sum + item.TempoSetup, 0);
+    const eficiencia = totalTempoProducao > 0 ?
+        (totalTempoProducao / (totalTempoProducao + totalTempoSetup)) * 100 : 0;
 
     // Paginação
     const { paginatedData, totalPages } = useMemo(() => {
@@ -115,6 +171,7 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
     const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
+        setCurrentPage(1);
     };
 
     const handleClearFilters = () => {
@@ -124,6 +181,7 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
             maquina: "all",
             tipoTecido: "all",
             tarefaCompleta: "all",
+            tipoSaida: "all", // NOVO
             search: "",
         });
         setCurrentPage(1);
@@ -134,6 +192,7 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
             ...prev,
             search: e.target.value,
         }));
+        setCurrentPage(1);
     };
 
     const handlePageChange = (newPage: number) => {
@@ -146,7 +205,8 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
     const handleCopy = () => {
         const headers = [
             'Data', 'Máquina', 'Tipo Tecido', 'Número Tarefa',
-            'Tempo Setup', 'Tempo Produção', 'Metros Produzidos', 'Completa'
+            'Tempo Setup', 'Tempo Produção', 'Metros Produzidos', 'Completa',
+            'Tipo Saída' // NOVO
         ].join('\t');
 
         const tsvRows = filteredData.map(item => [
@@ -157,7 +217,8 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
             item.TempoSetup,
             item.TempoProducao,
             item.MetrosProduzidos,
-            item.TarefaCompleta ? 'Sim' : 'Não'
+            item.TarefaCompleta ? 'Sim' : 'Não',
+            item.TipoSaida === 0 ? 'rolinho' : 'fraldado' // NOVO
         ].join('\t'));
 
         const tsv = [headers, ...tsvRows].join('\n');
@@ -187,7 +248,8 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
     const handleExportCSV = () => {
         const headers = [
             'Data', 'Máquina', 'Tipo Tecido', 'Número Tarefa',
-            'Tempo Setup', 'Tempo Produção', 'Metros Produzidos', 'Completa'
+            'Tempo Setup', 'Tempo Produção', 'Metros Produzidos', 'Completa',
+            'Tipo Saída' // NOVO
         ];
 
         const csvRows = filteredData.map(item => [
@@ -198,7 +260,8 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
             item.TempoSetup,
             item.TempoProducao,
             item.MetrosProduzidos,
-            `"${item.TarefaCompleta ? 'Sim' : 'Não'}"`
+            `"${item.TarefaCompleta ? 'Sim' : 'Não'}"`,
+            `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"` // NOVO
         ].join(','));
 
         const csv = [headers.join(','), ...csvRows].join('\n');
@@ -239,6 +302,34 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
             <div className="filtros-section bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 mb-6 shadow-md">
                 <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Filtros</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    {/* Data Início */}
+                    <div>
+                        <label className="block text-sm text-[var(--text-muted)] mb-2">
+                            Data Início
+                        </label>
+                        <input
+                            type="date"
+                            name="startDate"
+                            value={filters.startDate}
+                            onChange={handleFilterChange}
+                            className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                        />
+                    </div>
+
+                    {/* Data Fim */}
+                    <div>
+                        <label className="block text-sm text-[var(--text-muted)] mb-2">
+                            Data Fim
+                        </label>
+                        <input
+                            type="date"
+                            name="endDate"
+                            value={filters.endDate}
+                            onChange={handleFilterChange}
+                            className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                        />
+                    </div>
+
                     {/* Máquina */}
                     <div>
                         <label className="block text-sm text-[var(--text-muted)] mb-2">
@@ -269,9 +360,12 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
                             className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                         >
                             <option value="all">Todos</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
+                            <option value="meia malha">0 - meia malha</option>
+                            <option value="cotton">1 - cotton</option>
+                            <option value="punho pun">2 - punho pun</option>
+                            <option value="punho new">3 - punho new</option>
+                            <option value="punho san">4 - punho san</option>
+                            <option value="punho elan">5 - punho elan</option>
                         </select>
                     </div>
 
@@ -289,6 +383,23 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
                             <option value="all">Todos</option>
                             <option value="true">Sim</option>
                             <option value="false">Não</option>
+                        </select>
+                    </div>
+
+                    {/* NOVO: Tipo de Saída */}
+                    <div>
+                        <label className="block text-sm text-[var(--text-muted)] mb-2">
+                            Tipo de Saída
+                        </label>
+                        <select
+                            name="tipoSaida"
+                            value={filters.tipoSaida}
+                            onChange={handleFilterChange}
+                            className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                        >
+                            <option value="all">Todos</option>
+                            <option value="0">0 - rolinho</option>
+                            <option value="1">1 - fraldado</option>
                         </select>
                     </div>
 
@@ -364,12 +475,13 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
                             <th className="px-4 py-3 text-left font-medium">Produção (min)</th>
                             <th className="px-4 py-3 text-left font-medium">Metros</th>
                             <th className="px-4 py-3 text-left font-medium">Completa</th>
+                            <th className="px-4 py-3 text-left font-medium">Tipo Saída</th> {/* NOVO */}
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedData.length === 0 ? (
                             <tr className="border-t border-[var(--border)]">
-                                <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                                <td colSpan={9} className="px-4 py-8 text-center text-[var(--text-muted)]">
                                     Nenhum resultado encontrado
                                 </td>
                             </tr>
@@ -391,6 +503,16 @@ export const RelatorioProducao: React.FC<RelatorioProducaoProps> = ({ csvUrl }) 
                                                 : 'bg-red-100 text-red-800'
                                             }`}>
                                             {item.TarefaCompleta ? 'Sim' : 'Não'}
+                                        </span>
+                                    </td>
+                                    {/* NOVO: Coluna Tipo de Saída */}
+                                    <td className="px-4 py-3 text-[var(--text)]">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                            item.TipoSaida === 0 
+                                                ? 'bg-blue-100 text-blue-800' 
+                                                : 'bg-purple-100 text-purple-800'
+                                        }`}>
+                                            {item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}
                                         </span>
                                     </td>
                                 </tr>
