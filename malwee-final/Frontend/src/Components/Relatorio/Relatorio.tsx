@@ -597,15 +597,6 @@ export const Relatorio: React.FC = () => {
             </ButtonBase>
           </div>
 
-          <div>
-            <input
-              type="text"
-              placeholder={t('searchTable')}
-              value={filters.search}
-              onChange={handleSearchChange}
-              className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-            />
-          </div>
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-[var(--border)]">

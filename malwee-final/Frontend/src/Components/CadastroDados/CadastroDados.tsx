@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Footer } from "../Footer/Footer";
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 
@@ -20,7 +20,6 @@ import {
   CloseButton,
 } from "@mlw-packages/react-components";
 
-
 // Interface para os itens do histórico
 interface HistoryItem {
   id: number;
@@ -28,8 +27,7 @@ interface HistoryItem {
   maquina: string;
   tipoTecido: string;
   tipoSaida: string;
-  numeroTomate: string;
-  numeroBarril: number;
+  numeroTarefa: number;
   tempoSetup: number;
   tempoProducao: number;
   quantidadeCarreiras: number;
@@ -47,8 +45,7 @@ export const CadastroDados: React.FC = () => {
   const [maquina, setMaquina] = useState("");
   const [fabricType, setFabricType] = useState("0");
   const [outputType, setOutputType] = useState("0");
-  const [numeroTomate, setNumeroTomate] = useState("");
-  const [numeroBarril, setNumeroBarril] = useState("");
+  const [numeroTarefa, setNumeroTarefa] = useState("");
   const [tempoSetup, setTempoSetup] = useState("");
   const [tempoProducao, setTempoProducao] = useState("");
   const [quantidadeCarreiras, setQuantidadeCarreiras] = useState("");
@@ -62,8 +59,19 @@ export const CadastroDados: React.FC = () => {
   const [deletingItem, setDeletingItem] = useState<HistoryItem | null>(null);
   const [viewingItem, setViewingItem] = useState<HistoryItem | null>(null);
 
+  // Estados para dados e loading
+  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
   // Opções numéricas para os Combobox
-  const fabricOptions = ["0 - Meia Malha", "1 - Cotton", "2 - Punho Pun", "3 - Punho New", "4 - Punho San", "5 - Punho Elan"].map((n) => ({
+  const fabricOptions = [
+    "0 - Meia Malha",
+    "1 - Cotton",
+    "2 - Punho Pun",
+    "3 - Punho New",
+    "4 - Punho San",
+    "5 - Punho Elan",
+  ].map((n) => ({
     label: n,
     value: n,
   }));
@@ -73,91 +81,166 @@ export const CadastroDados: React.FC = () => {
     value: n,
   }));
 
-  // Estado para armazenar os dados do histórico
-  const [historyData, setHistoryData] = useState<HistoryItem[]>([
-    { 
-      id: 1, 
-      data: new Date("2025-11-17T10:30:00"), 
-      maquina: "CD1", 
-      tipoTecido: "1 - Cotton", 
-      tipoSaida: "0 - Rolinho", 
-      numeroTomate: "MT001",
-      numeroBarril: 123, 
-      tempoSetup: 15,
-      tempoProducao: 120,
-      quantidadeCarreiras: 500,
-      metrosProduzidos: 4500, 
-      observacoes: "Produção normal",
-      tarefaCompleta: true,
-      sobrasRolo: false
-    },
-    { 
-      id: 2, 
-      data: new Date("2025-11-17T09:15:00"), 
-      maquina: "CD2", 
-      tipoTecido: "0 - Meia Malha", 
-      tipoSaida: "1 - Fraldado", 
-      numeroTomate: "MT002",
-      numeroBarril: 456, 
-      tempoSetup: 20,
-      tempoProducao: 90,
-      quantidadeCarreiras: 300,
-      metrosProduzidos: 3200, 
-      observacoes: "Ajuste necessário",
-      tarefaCompleta: false,
-      sobrasRolo: true
-    },
-    { 
-      id: 3, 
-      data: new Date("2025-11-16T14:00:00"), 
-      maquina: "CD1", 
-      tipoTecido: "3 - Punho New", 
-      tipoSaida: "0 - Rolinho", 
-      numeroTomate: "MT003",
-      numeroBarril: 789, 
-      tempoSetup: 10,
-      tempoProducao: 30,
-      quantidadeCarreiras: 100,
-      metrosProduzidos: 500, 
-      observacoes: "",
-      tarefaCompleta: true,
-      sobrasRolo: false
-    },
-  ]);
+  // Funções auxiliares para converter números em labels
+  const getFabricTypeLabel = (typeNumber: number): string => {
+    const fabricTypes: { [key: number]: string } = {
+      0: "0 - Meia Malha",
+      1: "1 - Cotton",
+      2: "2 - Punho Pun",
+      3: "3 - Punho New",
+      4: "4 - Punho San",
+      5: "5 - Punho Elan"
+    };
+    return fabricTypes[typeNumber] || `Tecido ${typeNumber}`;
+  };
+
+  const getOutputTypeLabel = (typeNumber: number): string => {
+    const outputTypes: { [key: number]: string } = {
+      0: "0 - Rolinho",
+      1: "1 - Fraldado"
+    };
+    return outputTypes[typeNumber] || `Saída ${typeNumber}`;
+  };
+
+  // Função para carregar dados do histórico
+  const loadHistoryData = async () => {
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+      console.error("Usuário não autenticado");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("Fazendo requisição para /api/historico...");
+
+      const response = await fetch("http://localhost:3000/api/historico", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      console.log("Status da resposta:", response.status);
+
+      if (response.status === 401 || response.status === 403) {
+        alert("Sessão expirada. Faça login novamente.");
+        localStorage.removeItem("jwt_token");
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erro detalhado do servidor:", errorText);
+        throw new Error(`Erro ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Dados recebidos:", data);
+
+      // Transformar os dados da API para o formato do frontend
+      const formattedData: HistoryItem[] = data.map((item: any) => ({
+        id: item.id,
+        data: new Date(item.data),
+        maquina: item.maquina,
+        tipoTecido: getFabricTypeLabel(item.tipoTecido),
+        tipoSaida: getOutputTypeLabel(item.tipoSaida),
+        numeroTarefa: item.numeroTarefa,
+        tempoSetup: item.tempoSetup,
+        tempoProducao: item.tempoProducao,
+        quantidadeCarreiras: item.quantidadeCarreiras,
+        metrosProduzidos: item.metrosProduzidos,
+        observacoes: item.observacoes || "",
+        tarefaCompleta: item.tarefaCompleta === 'TRUE' || item.tarefaCompleta === true || item.tarefaCompleta === 1,
+        sobrasRolo: item.sobrasRolo === 'TRUE' || item.sobrasRolo === true || item.sobrasRolo === 1
+      }));
+
+      setHistoryData(formattedData);
+    } catch (error) {
+      console.error("Erro ao carregar histórico:", error);
+      alert("Não foi possível carregar o histórico de produção. Verifique o console.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carregar dados quando o componente montar
+  useEffect(() => {
+    loadHistoryData();
+  }, []);
 
   // Função para adicionar novo registro
-  const handleAddRecord = () => {
+  const handleAddRecord = async () => {
     if (!selectedDate || !maquina) {
       alert("Preencha pelo menos Data e Máquina");
       return;
     }
 
-    const newRecord: HistoryItem = {
-      id: historyData.length > 0 ? Math.max(...historyData.map(item => item.id)) + 1 : 1,
-      data: selectedDate,
-      maquina: maquina,
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+      alert("Usuário não autenticado. Faça login novamente.");
+      window.location.href = "/login";
+      return;
+    }
+
+    const newRecord = {
+      data: selectedDate.toISOString(),
+      maquina,
       tipoTecido: fabricType,
       tipoSaida: outputType,
-      numeroTomate: numeroTomate,
-      numeroBarril: parseInt(numeroBarril) || 0,
+      numeroTarefa: parseInt(numeroTarefa) || 0,
       tempoSetup: parseInt(tempoSetup) || 0,
       tempoProducao: parseInt(tempoProducao) || 0,
       quantidadeCarreiras: parseInt(quantidadeCarreiras) || 0,
       metrosProduzidos: parseInt(metrosProduzidos) || 0,
-      observacoes: observacoes,
-      tarefaCompleta: tarefaCompleta,
-      sobrasRolo: sobrasRolo,
+      observacoes,
+      tarefaCompleta,
+      sobrasRolo
     };
 
-    setHistoryData([newRecord, ...historyData]);
-    handleClearForm();
+    try {
+      const response = await fetch("http://localhost:3000/api/cadastroDados", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newRecord),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        alert("Sessão expirada ou sem permissão. Faça login novamente.");
+        localStorage.removeItem("jwt_token");
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Erro do servidor:", text);
+        throw new Error("Erro ao enviar dados para o servidor");
+      }
+
+      const data = await response.json();
+      alert("Registro adicionado com sucesso! ID: " + data.id);
+
+      // Recarregar o histórico após adicionar
+      await loadHistoryData();
+      handleClearForm();
+    } catch (error) {
+      console.error("Erro ao enviar registro:", error);
+      alert("Não foi possível adicionar o registro. Veja o console para detalhes.");
+    }
   };
 
   // Função para editar registro
   const handleEditRecord = () => {
     if (!editingItem) return;
 
-    const updatedData = historyData.map(item =>
+    const updatedData = historyData.map((item) =>
       item.id === editingItem.id ? editingItem : item
     );
 
@@ -169,7 +252,7 @@ export const CadastroDados: React.FC = () => {
   const handleDeleteRecord = () => {
     if (!deletingItem) return;
 
-    const filteredData = historyData.filter(item => item.id !== deletingItem.id);
+    const filteredData = historyData.filter((item) => item.id !== deletingItem.id);
     setHistoryData(filteredData);
     setDeletingItem(null);
   };
@@ -194,8 +277,7 @@ export const CadastroDados: React.FC = () => {
     setMaquina("");
     setFabricType("0");
     setOutputType("0");
-    setNumeroTomate("");
-    setNumeroBarril("");
+    setNumeroTarefa("");
     setTempoSetup("");
     setTempoProducao("");
     setQuantidadeCarreiras("");
@@ -210,9 +292,7 @@ export const CadastroDados: React.FC = () => {
     <main className="flex flex-col min-h-screen ml-[80px] bg-[var(--surface)] text-[var(--text)]">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">{t("malweeGroup")}</h1>
-        <p className="text-[var(--text-muted)] text-lg">
-          {t("dataVisualizationSewing")}
-        </p>
+        <p className="text-[var(--text-muted)] text-lg">{t("dataVisualizationSewing")}</p>
         <p className="mt-3 text-[18px] font-semibold text-[var(--text)]">
           {t("dataRegistration")}
         </p>
@@ -225,16 +305,12 @@ export const CadastroDados: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-
           {/* DateTime */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("dateTime")}
             </LabelBase>
-            <DateTimePicker
-              date={selectedDate}
-              onChange={setSelectedDate}
-            />
+            <DateTimePicker date={selectedDate} onChange={setSelectedDate} />
           </div>
 
           {/* Máquina */}
@@ -242,22 +318,10 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("machine")}
             </LabelBase>
-            <InputBase 
-              placeholder={t("machineExample")} 
+            <InputBase
+              placeholder={t("machineExample")}
               value={maquina}
               onChange={(e) => setMaquina(e.target.value)}
-            />
-          </div>
-
-          {/* Nº Tomato */}
-          <div>
-            <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
-              {t("tomatoNumber")}
-            </LabelBase>
-            <InputBase 
-              placeholder={t("tomatoNumberPlaceholder")} 
-              value={numeroTomate}
-              onChange={(e) => setNumeroTomate(e.target.value)}
             />
           </div>
 
@@ -291,16 +355,16 @@ export const CadastroDados: React.FC = () => {
             />
           </div>
 
-          {/* Nº do Barril */}
+          {/* Nº da Tarefa */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
-              {t("barrelNumber")}
+              {t("taskNumber")}
             </LabelBase>
-            <InputBase 
-              type="number" 
-              placeholder={t("barrelNumberPlaceholder")} 
-              value={numeroBarril}
-              onChange={(e) => setNumeroBarril(e.target.value)}
+            <InputBase
+              type="number"
+              placeholder={t("taskNumberPlaceholder")}
+              value={numeroTarefa}
+              onChange={(e) => setNumeroTarefa(e.target.value)}
             />
           </div>
 
@@ -309,9 +373,9 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("setupTime")}
             </LabelBase>
-            <InputBase 
-              type="number" 
-              placeholder={t("minutes")} 
+            <InputBase
+              type="number"
+              placeholder={t("minutes")}
               value={tempoSetup}
               onChange={(e) => setTempoSetup(e.target.value)}
             />
@@ -322,9 +386,9 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("productionTime")}
             </LabelBase>
-            <InputBase 
-              type="number" 
-              placeholder={t("minutes")} 
+            <InputBase
+              type="number"
+              placeholder={t("minutes")}
               value={tempoProducao}
               onChange={(e) => setTempoProducao(e.target.value)}
             />
@@ -335,9 +399,9 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("rowQuantity")}
             </LabelBase>
-            <InputBase 
-              type="number" 
-              placeholder={t("quantity")} 
+            <InputBase
+              type="number"
+              placeholder={t("quantity")}
               value={quantidadeCarreiras}
               onChange={(e) => setQuantidadeCarreiras(e.target.value)}
             />
@@ -348,9 +412,9 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("metersProduced")}
             </LabelBase>
-            <InputBase 
-              type="number" 
-              placeholder={t("meters")} 
+            <InputBase
+              type="number"
+              placeholder={t("meters")}
               value={metrosProduzidos}
               onChange={(e) => setMetrosProduzidos(e.target.value)}
             />
@@ -361,8 +425,8 @@ export const CadastroDados: React.FC = () => {
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("observations")}
             </LabelBase>
-            <InputBase 
-              placeholder={t("optionalObservations")} 
+            <InputBase
+              placeholder={t("optionalObservations")}
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
             />
@@ -372,18 +436,12 @@ export const CadastroDados: React.FC = () => {
         {/* CHECKBOXES */}
         <div className="flex items-center gap-6 mt-4">
           <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
-            <CheckboxBase 
-              checked={tarefaCompleta}
-              onCheckedChange={setTarefaCompleta}
-            />
+            <CheckboxBase checked={tarefaCompleta} onCheckedChange={setTarefaCompleta} />
             {t("taskComplete")}
           </LabelBase>
 
           <LabelBase className="flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
-            <CheckboxBase 
-              checked={sobrasRolo}
-              onCheckedChange={setSobrasRolo}
-            />
+            <CheckboxBase checked={sobrasRolo} onCheckedChange={setSobrasRolo} />
             {t("rollWaste")}
           </LabelBase>
         </div>
@@ -393,140 +451,231 @@ export const CadastroDados: React.FC = () => {
           <ButtonBase variant="outline" onClick={handleClearForm}>
             {t("clear")}
           </ButtonBase>
-          <ButtonBase onClick={handleAddRecord}>
-            {t("addRecord")}
-          </ButtonBase>
+          <ButtonBase onClick={handleAddRecord}>{t("addRecord")}</ButtonBase>
         </div>
       </section>
 
       {/* HISTÓRICO DE PRODUÇÃO */}
       <section className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 shadow-md mb-8">
-        <h1 className="text-2xl font-bold mb-4 text-[var(--text)]">{t("productionHistory")}</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-[var(--text)]">
+            {t("productionHistory")}
+          </h1>
+          <ButtonBase
+            variant="outline"
+            onClick={loadHistoryData}
+            disabled={loading}
+          >
+            {loading ? "Carregando..." : "Atualizar"}
+          </ButtonBase>
+        </div>
 
         <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
           <table className="min-w-full text-sm">
             <thead className="bg-[var(--surface)] text-[var(--text-muted)]">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">{t('date')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('machine')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('tomatoNumber')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('fabricType')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('outputType')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('barrelNumber')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('setupTimeShort')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('productionTimeShort')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('rows')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('metersProduced')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('observationsShort')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('complete')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('rollWasteHeader')}</th>
-                <th className="px-4 py-3 text-left font-medium">{t('actions')}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("date")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("machine")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("fabricType")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("outputType")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("taskNumber")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("setupTimeShort")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("productionTimeShort")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("rows")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("metersProduced")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("observationsShort")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("complete")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("rollWasteHeader")}</th>
+                <th className="px-4 py-3 text-left font-medium">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
-              {historyData.length === 0 ? (
+              {loading ? (
                 <tr className="border-t border-[var(--border)]">
                   <td colSpan={14} className="px-4 py-8 text-center text-[var(--text-muted)]">
-                    {t('noRecordsFound')}
+                    Carregando dados...
+                  </td>
+                </tr>
+              ) : historyData.length === 0 ? (
+                <tr className="border-t border-[var(--border)]">
+                  <td colSpan={14} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                    {t("noRecordsFound")}
                   </td>
                 </tr>
               ) : (
                 historyData.map((item) => (
-                  <tr key={item.id} className="border-t border-[var(--border)] hover:bg-[var(--surface)]">
-
+                  <tr
+                    key={item.id}
+                    className="border-t border-[var(--border)] hover:bg-[var(--surface)]"
+                  >
                     {/* Dados da Linha */}
                     <td className="px-4 py-3 text-[var(--text)] whitespace-nowrap">
                       {item.data.toLocaleString(language)}
                     </td>
                     <td className="px-4 py-3 text-[var(--text)]">{item.maquina}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.numeroTomate}</td>
                     <td className="px-4 py-3 text-[var(--text)]">{item.tipoTecido}</td>
                     <td className="px-4 py-3 text-[var(--text)]">{item.tipoSaida}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.numeroBarril}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.tempoSetup} {t('unitMin')}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.tempoProducao} {t('unitMin')}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.quantidadeCarreiras}</td>
-                    <td className="px-4 py-3 text-[var(--text)]">{item.metrosProduzidos}{t('unitMeters')}</td>
-                    <td className="px-4 py-3 text-[var(--text)] max-w-[200px] truncate" title={item.observacoes}>
+                    <td className="px-4 py-3 text-[var(--text)]">{item.numeroTarefa}</td>
+                    <td className="px-4 py-3 text-[var(--text)]">
+                      {item.tempoSetup} {t("unitMin")}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text)]">
+                      {item.tempoProducao} {t("unitMin")}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text)]">
+                      {item.quantidadeCarreiras}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text)]">
+                      {item.metrosProduzidos}
+                      {t("unitMeters")}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-[var(--text)] max-w-[200px] truncate"
+                      title={item.observacoes}
+                    >
                       {item.observacoes || "-"}
                     </td>
                     <td className="px-4 py-3 text-[var(--text)]">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.tarefaCompleta
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {item.tarefaCompleta ? t('yes') : t('no')}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${item.tarefaCompleta
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                          }`}
+                      >
+                        {item.tarefaCompleta ? t("yes") : t("no")}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[var(--text)]">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.sobrasRolo
-                          ? 'bg-orange-100 text-orange-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {item.sobrasRolo ? t('yes') : t('no')}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${item.sobrasRolo
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-gray-100 text-gray-800"
+                          }`}
+                      >
+                        {item.sobrasRolo ? t("yes") : t("no")}
                       </span>
                     </td>
 
                     <td className="px-4 py-3 text-[var(--text)]">
                       <div className="flex gap-2">
-                        <ModalBase open={!!viewingItem && viewingItem.id === item.id} onOpenChange={(open) => !open && setViewingItem(null)}>
+                        {/* VISUALIZAÇÃO */}
+                        <ModalBase
+                          open={!!viewingItem && viewingItem.id === item.id}
+                          onOpenChange={(open) => !open && setViewingItem(null)}
+                        >
                           <ModalTriggerBase asChild>
-                            <VisibilityButton 
+                            <VisibilityButton
                               className="p-2 rounded-lg hover:bg-[var(--hover)] text-[var(--text-muted)] transition"
                               title={t("view")}
                               onClick={() => openViewModal(item)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                className="lucide lucide-eye">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-eye"
+                              >
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
                                 <circle cx="12" cy="12" r="3" />
                               </svg>
-                            </VisibilityButton >
+                            </VisibilityButton>
                           </ModalTriggerBase>
 
                           <ModalContentBase>
                             <ModalTitleBase>{t("viewRecord")}</ModalTitleBase>
                             <ModalDescriptionBase asChild>
                               <div className="space-y-2 text-sm text-[var(--text)]">
-                                <p><strong>{t('labelDate')}:</strong> {viewingItem?.data.toLocaleString(language)}</p>
-                                <p><strong>{t('labelMachine')}:</strong> {viewingItem?.maquina}</p>
-                                <p><strong>{t('labelTomatoNumber')}:</strong> {viewingItem?.numeroTomate}</p>
-                                <p><strong>{t('labelFabricType')}:</strong> {viewingItem?.tipoTecido}</p>
-                                <p><strong>{t('labelOutputType')}:</strong> {viewingItem?.tipoSaida}</p>
-                                <p><strong>{t('labelBarrelNumber')}:</strong> {viewingItem?.numeroBarril}</p>
-                                <p><strong>{t('labelSetupTime')}:</strong> {viewingItem?.tempoSetup} {t('unitMin')}</p>
-                                <p><strong>{t('labelProductionTime')}:</strong> {viewingItem?.tempoProducao} {t('unitMin')}</p>
-                                <p><strong>{t('labelRows')}:</strong> {viewingItem?.quantidadeCarreiras}</p>
-                                <p><strong>{t('labelMetersProduced')}:</strong> {viewingItem?.metrosProduzidos}{t('unitMeters')}</p>
-                                <p><strong>{t('labelObservations')}:</strong> {viewingItem?.observacoes || t('none')}</p>
-                                <p><strong>{t('labelTaskComplete')}:</strong> {viewingItem?.tarefaCompleta ? t('yes') : t('no')}</p>
-                                <p><strong>{t('labelRollWaste')}:</strong> {viewingItem?.sobrasRolo ? t('yes') : t('no')}</p>
+                                <p>
+                                  <strong>{t("labelDate")}:</strong>{" "}
+                                  {viewingItem?.data.toLocaleString(language)}
+                                </p>
+                                <p>
+                                  <strong>{t("labelMachine")}:</strong> {viewingItem?.maquina}
+                                </p>
+                                <p>
+                                  <strong>{t("labelFabricType")}:</strong>{" "}
+                                  {viewingItem?.tipoTecido}
+                                </p>
+                                <p>
+                                  <strong>{t("labelOutputType")}:</strong>{" "}
+                                  {viewingItem?.tipoSaida}
+                                </p>
+                                <p>
+                                  <strong>{t("labeltaskNumber")}:</strong>{" "}
+                                  {viewingItem?.numeroTarefa}
+                                </p>
+                                <p>
+                                  <strong>{t("labelSetupTime")}:</strong>{" "}
+                                  {viewingItem?.tempoSetup} {t("unitMin")}
+                                </p>
+                                <p>
+                                  <strong>{t("labelProductionTime")}:</strong>{" "}
+                                  {viewingItem?.tempoProducao} {t("unitMin")}
+                                </p>
+                                <p>
+                                  <strong>{t("labelRows")}:</strong>{" "}
+                                  {viewingItem?.quantidadeCarreiras}
+                                </p>
+                                <p>
+                                  <strong>{t("labelMetersProduced")}:</strong>{" "}
+                                  {viewingItem?.metrosProduzidos}
+                                  {t("unitMeters")}
+                                </p>
+                                <p>
+                                  <strong>{t("labelObservations")}:</strong>{" "}
+                                  {viewingItem?.observacoes || t("none")}
+                                </p>
+                                <p>
+                                  <strong>{t("labelTaskComplete")}:</strong>{" "}
+                                  {viewingItem?.tarefaCompleta ? t("yes") : t("no")}
+                                </p>
+                                <p>
+                                  <strong>{t("labelRollWaste")}:</strong>{" "}
+                                  {viewingItem?.sobrasRolo ? t("yes") : t("no")}
+                                </p>
                               </div>
                             </ModalDescriptionBase>
                             <ModalFooterBase>
-                              <ButtonBase variant="outline" onClick={() => setViewingItem(null)}>
+                              <ButtonBase
+                                variant="outline"
+                                onClick={() => setViewingItem(null)}
+                              >
                                 {t("close")}
                               </ButtonBase>
                             </ModalFooterBase>
                           </ModalContentBase>
                         </ModalBase>
 
-                        <ModalBase open={!!editingItem && editingItem.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
+                        {/* EDIÇÃO */}
+                        <ModalBase
+                          open={!!editingItem && editingItem.id === item.id}
+                          onOpenChange={(open) => !open && setEditingItem(null)}
+                        >
                           <ModalTriggerBase asChild>
                             <EditButton
                               className="p-2 rounded-lg hover:bg-[var(--hover)] text-[var(--text-muted)] transition"
                               title={t("edit")}
                               onClick={() => openEditModal(item)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                className="lucide lucide-pencil">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-pencil"
+                              >
                                 <path d="M17 3a2.828 2.828 0 1 1 4 4L7 21l-4 1 1-4L17 3z" />
                               </svg>
-                            </EditButton >
+                            </EditButton>
                           </ModalTriggerBase>
 
                           <ModalContentBase>
@@ -535,113 +684,187 @@ export const CadastroDados: React.FC = () => {
                               <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <LabelBase>{t('labelMachine')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labelMachine")}</LabelBase>
+                                    <InputBase
                                       value={editingItem?.maquina || ""}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, maquina: e.target.value} : null)}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev ? { ...prev, maquina: e.target.value } : null
+                                        )
+                                      }
                                     />
                                   </div>
+
                                   <div>
-                                    <LabelBase>{t('labelTomatoNumber')}</LabelBase>
-                                    <InputBase 
-                                      value={editingItem?.numeroTomate || ""}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, numeroTomate: e.target.value} : null)}
-                                    />
-                                  </div>
-                                  <div>
-                                    <LabelBase>{t('labelBarrelNumber')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labeltaskNumber")}</LabelBase>
+                                    <InputBase
                                       type="number"
-                                      value={editingItem?.numeroBarril || 0}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, numeroBarril: parseInt(e.target.value) || 0} : null)}
+                                      value={editingItem?.numeroTarefa || 0}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? {
+                                              ...prev,
+                                              numeroTarefa: parseInt(e.target.value) || 0,
+                                            }
+                                            : null
+                                        )
+                                      }
                                     />
                                   </div>
                                   <div>
-                                    <LabelBase>{t('labelSetupTime')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labelSetupTime")}</LabelBase>
+                                    <InputBase
                                       type="number"
                                       value={editingItem?.tempoSetup || 0}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, tempoSetup: parseInt(e.target.value) || 0} : null)}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? {
+                                              ...prev,
+                                              tempoSetup: parseInt(e.target.value) || 0,
+                                            }
+                                            : null
+                                        )
+                                      }
                                     />
                                   </div>
                                   <div>
-                                    <LabelBase>{t('labelProductionTime')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labelProductionTime")}</LabelBase>
+                                    <InputBase
                                       type="number"
                                       value={editingItem?.tempoProducao || 0}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, tempoProducao: parseInt(e.target.value) || 0} : null)}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? {
+                                              ...prev,
+                                              tempoProducao: parseInt(e.target.value) || 0,
+                                            }
+                                            : null
+                                        )
+                                      }
                                     />
                                   </div>
                                   <div>
-                                    <LabelBase>{t('labelRows')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labelRows")}</LabelBase>
+                                    <InputBase
                                       type="number"
                                       value={editingItem?.quantidadeCarreiras || 0}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, quantidadeCarreiras: parseInt(e.target.value) || 0} : null)}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? {
+                                              ...prev,
+                                              quantidadeCarreiras:
+                                                parseInt(e.target.value) || 0,
+                                            }
+                                            : null
+                                        )
+                                      }
                                     />
                                   </div>
                                   <div>
-                                    <LabelBase>{t('labelMetersProduced')}</LabelBase>
-                                    <InputBase 
+                                    <LabelBase>{t("labelMetersProduced")}</LabelBase>
+                                    <InputBase
                                       type="number"
                                       value={editingItem?.metrosProduzidos || 0}
-                                      onChange={(e) => setEditingItem(prev => prev ? {...prev, metrosProduzidos: parseInt(e.target.value) || 0} : null)}
+                                      onChange={(e) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? {
+                                              ...prev,
+                                              metrosProduzidos:
+                                                parseInt(e.target.value) || 0,
+                                            }
+                                            : null
+                                        )
+                                      }
                                     />
                                   </div>
                                 </div>
                                 <div>
-                                  <LabelBase>{t('labelObservations')}</LabelBase>
-                                  <InputBase 
+                                  <LabelBase>{t("labelObservations")}</LabelBase>
+                                  <InputBase
                                     value={editingItem?.observacoes || ""}
-                                    onChange={(e) => setEditingItem(prev => prev ? {...prev, observacoes: e.target.value} : null)}
+                                    onChange={(e) =>
+                                      setEditingItem((prev) =>
+                                        prev
+                                          ? { ...prev, observacoes: e.target.value }
+                                          : null
+                                      )
+                                    }
                                   />
                                 </div>
                                 <div className="flex gap-4">
                                   <LabelBase className="flex items-center gap-2">
-                                    <CheckboxBase 
+                                    <CheckboxBase
                                       checked={editingItem?.tarefaCompleta || false}
-                                      onCheckedChange={(checked) => setEditingItem(prev => prev ? {...prev, tarefaCompleta: !!checked} : null)}
+                                      onCheckedChange={(checked) =>
+                                        setEditingItem((prev) =>
+                                          prev
+                                            ? { ...prev, tarefaCompleta: !!checked }
+                                            : null
+                                        )
+                                      }
                                     />
-                                    {t('labelTaskComplete')}
+                                    {t("labelTaskComplete")}
                                   </LabelBase>
                                   <LabelBase className="flex items-center gap-2">
-                                    <CheckboxBase 
+                                    <CheckboxBase
                                       checked={editingItem?.sobrasRolo || false}
-                                      onCheckedChange={(checked) => setEditingItem(prev => prev ? {...prev, sobrasRolo: !!checked} : null)}
+                                      onCheckedChange={(checked) =>
+                                        setEditingItem((prev) =>
+                                          prev ? { ...prev, sobrasRolo: !!checked } : null
+                                        )
+                                      }
                                     />
-                                    {t('labelRollWaste')}
+                                    {t("labelRollWaste")}
                                   </LabelBase>
                                 </div>
                               </div>
                             </ModalDescriptionBase>
                             <ModalFooterBase>
-                              <ButtonBase variant="outline" onClick={() => setEditingItem(null)}>
+                              <ButtonBase
+                                variant="outline"
+                                onClick={() => setEditingItem(null)}
+                              >
                                 {t("cancel")}
                               </ButtonBase>
-                              <ButtonBase onClick={handleEditRecord}>
-                                {t("save")}
-                              </ButtonBase>
+                              <ButtonBase onClick={handleEditRecord}>{t("save")}</ButtonBase>
                             </ModalFooterBase>
                           </ModalContentBase>
                         </ModalBase>
 
-                        <ModalBase open={!!deletingItem && deletingItem.id === item.id} onOpenChange={(open) => !open && setDeletingItem(null)}>
+                        {/* EXCLUSÃO */}
+                        <ModalBase
+                          open={!!deletingItem && deletingItem.id === item.id}
+                          onOpenChange={(open) => !open && setDeletingItem(null)}
+                        >
                           <ModalTriggerBase asChild>
-                            <CloseButton 
+                            <CloseButton
                               className="p-2 rounded-lg hover:bg-red-600/20 text-red-500 transition"
                               title={t("delete")}
                               onClick={() => openDeleteModal(item)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                className="lucide lucide-trash2">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-trash2"
+                              >
                                 <path d="M3 6h18" />
                                 <path d="M8 6V4h8v2" />
                                 <path d="M10 11v6" />
                                 <path d="M14 11v6" />
                                 <path d="M5 6l1 14h12l1-14" />
                               </svg>
-                            </CloseButton >
+                            </CloseButton>
                           </ModalTriggerBase>
 
                           <ModalContentBase>
@@ -649,14 +872,21 @@ export const CadastroDados: React.FC = () => {
                             <ModalDescriptionBase>
                               {t("deleteRecordDesc")} (ID: {deletingItem?.id})
                               <br />
-                              <strong>Máquina:</strong> {deletingItem?.maquina} | 
-                              <strong> Data:</strong> {deletingItem?.data.toLocaleString(language)}
+                              <strong>Máquina:</strong> {deletingItem?.maquina} |
+                              <strong> Data:</strong>{" "}
+                              {deletingItem?.data.toLocaleString(language)}
                             </ModalDescriptionBase>
                             <ModalFooterBase>
-                              <ButtonBase variant="outline" onClick={() => setDeletingItem(null)}>
+                              <ButtonBase
+                                variant="outline"
+                                onClick={() => setDeletingItem(null)}
+                              >
                                 {t("cancel")}
                               </ButtonBase>
-                              <ButtonBase variant="destructive" onClick={handleDeleteRecord}>
+                              <ButtonBase
+                                variant="destructive"
+                                onClick={handleDeleteRecord}
+                              >
                                 {t("delete")}
                               </ButtonBase>
                             </ModalFooterBase>
@@ -664,7 +894,6 @@ export const CadastroDados: React.FC = () => {
                         </ModalBase>
                       </div>
                     </td>
-
                   </tr>
                 ))
               )}

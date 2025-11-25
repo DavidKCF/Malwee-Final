@@ -72,7 +72,7 @@ const translations = {
     labelTomatoNumber: "Nº Tomato",
     labelFabricType: "Tipo de Tecido",
     labelOutputType: "Tipo de Saída",
-    labelBarrelNumber: "Nº Barril",
+    labeltaskNumber: "Nº Tarefa",
     labelSetupTime: "Tempo Setup",
     labelProductionTime: "Tempo Produção",
     labelRows: "Carreiras",
@@ -130,8 +130,8 @@ const translations = {
     dateTime: "Data/Hora",
     machineExample: "Ex: C01",
     outputType: "Tipo Saída",
-    barrelNumber: "Nº Tonela",
-    barrelNumberPlaceholder: "Número da tonela",
+    taskNumber: "Nº Tarefa",
+    taskNumberPlaceholder: "Número da tarefa",
     setupTime: "Tempo Setup (min)",
     productionTime: "Tempo Produção (min)",
     minutes: "Minutos",
@@ -330,7 +330,7 @@ const translations = {
     labelTomatoNumber: "Tomato No.",
     labelFabricType: "Fabric Type",
     labelOutputType: "Output Type",
-    labelBarrelNumber: "Barrel No.",
+    labeltaskNumber: "Task No.",
     labelSetupTime: "Setup Time",
     labelProductionTime: "Production Time",
     labelRows: "Rows",
@@ -388,8 +388,8 @@ const translations = {
     dateTime: "Date/Time",
     machineExample: "Ex: C01",
     outputType: "Output Type",
-    barrelNumber: "Barrel Number",
-    barrelNumberPlaceholder: "Barrel number",
+    taskNumber: "Task Number",
+    taskNumberPlaceholder: "Task number",
     setupTime: "Setup Time (min)",
     productionTime: "Production Time (min)",
     minutes: "Minutes",
@@ -633,18 +633,39 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setCursorType(null);
     setIsWidgetVisible(true);
     setModalContent(null);
+    
+    // Limpar localStorage manualmente para garantir
+    const keys = ["acess-lang", "acess-tools", "acess-custom-contrast", "acess-font-size", "acess-cursor", "acess-widget-visible"];
+    keys.forEach(key => {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (error) {
+        console.error(`Error removing ${key} from localStorage:`, error);
+      }
+    });
+    
+    // Resetar estilos aplicados
+    document.documentElement.style.fontSize = "16px";
+    document.documentElement.style.filter = "none";
+    document.body.classList.remove("cursor-dark", "cursor-light", "keyboard-nav-active");
+    
+    console.log("Todas as configurações de acessibilidade foram resetadas");
   }, [setLanguage, setActiveTools, setCustomContrast, setFontSize, setCursorType, setIsWidgetVisible]);
 
   const handleHideMenu = useCallback(() => {
-    console.log("Funcionalidade 'Esconder Menu' foi removida");
-  }, []);
+    setIsWidgetVisible(false);
+    console.log("Menu de acessibilidade ocultado");
+  }, [setIsWidgetVisible]);
 
   const handleDisableAcessibility = useCallback(() => {
-    console.log("Funcionalidade 'Desativar Acessibilidade' foi removida");
-  }, []);
+    handleResetAll();
+    setIsWidgetVisible(false);
+    console.log("Acessibilidade desativada");
+  }, [handleResetAll, setIsWidgetVisible]);
 
   const handleSendFeedback = () => setModalContent("feedback");
 
+  // Efeito para aplicar o tamanho da fonte
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
     return () => {
@@ -652,32 +673,41 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [fontSize]);
 
+  // Efeito para aplicar o cursor personalizado
   useEffect(() => {
     const body = document.body;
+    
+    // Remover classes anteriores
     body.classList.remove("cursor-dark", "cursor-light");
-
+    
+    // Aplicar nova classe baseada no cursorType
     if (cursorType === "escuro") {
       body.classList.add("cursor-dark");
     } else if (cursorType === "claro") {
       body.classList.add("cursor-light");
     }
+    
     return () => {
       body.classList.remove("cursor-dark", "cursor-light");
     };
   }, [cursorType]);
 
+  // Efeito para aplicar o brilho/contraste
   useEffect(() => {
     if (customContrast !== 50) {
+      // Converter para valor de brightness (50 = 1.0, 100 = 2.0, 0 = 0.0)
       const brightnessValue = customContrast / 50;
       document.documentElement.style.filter = `brightness(${brightnessValue})`;
     } else {
       document.documentElement.style.filter = "none";
     }
+    
     return () => {
       document.documentElement.style.filter = "none";
     };
   }, [customContrast]);
 
+  // Efeito para navegação por teclado
   useEffect(() => {
     const isKeyboardNavActive = activeTools.includes("tool2");
     if (isKeyboardNavActive) {
@@ -685,6 +715,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     } else {
       document.body.classList.remove("keyboard-nav-active");
     }
+    
     return () => {
       document.body.classList.remove("keyboard-nav-active");
     };

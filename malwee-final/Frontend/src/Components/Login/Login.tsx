@@ -102,10 +102,10 @@ export const Login: React.FC = () => {
 
               <div className="text-right">
                 <a
-                  href="#"
+                  href="/alterar-senha"
                   className="text-sm text-[var(--accent)] hover:underline"
                 >
-                  Esqueceu Senha?
+                  Alterar Senha?
                 </a>
               </div>
 

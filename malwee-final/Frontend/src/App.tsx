@@ -13,6 +13,7 @@ import { Acessibilidade } from "../../Frontend/src/Components/Acessibilidade/Ace
 import { Usuario } from "../../Frontend/src/Components/Usuario/Usuario";
 import { Login } from "../../Frontend/src/Components/Login/Login";
 import { Registro } from "./Components/Registro/Registro";
+import { AlterarSenha } from './Components/AlterarSenha/AlterarSenha';
 
 // Componente para rotas com layout (Sidebar)
 function LayoutWithSidebar() {
@@ -44,7 +45,7 @@ function App() {
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-
+          <Route path="/alterar-senha" element={<AlterarSenha />} />
           {/* Rotas com Sidebar */}
           <Route path="/*" element={<LayoutWithSidebar />} />
         </Routes>

@@ -32,8 +32,8 @@ function getWhereClause(ano, mes) {
 
     if (ano && mes) {
         whereClause = `
-            WHERE YEAR(\`Data (AAAA-MM-DD HH:MM:SS)\`) = ?
-            AND MONTH(\`Data (AAAA-MM-DD HH:MM:SS)\`) = ?`;
+            WHERE YEAR(STR_TO_DATE(\`Data (AAAA-MM-DD HH:MM:SS)\`, '%Y-%m-%dT%H:%i:%s')) = ?
+            AND MONTH(STR_TO_DATE(\`Data (AAAA-MM-DD HH:MM:SS)\`, '%Y-%m-%dT%H:%i:%s')) = ?`;
         params = [ano, mes];
     }
     return { whereClause, params };
@@ -296,8 +296,8 @@ apiRouter.get('/kpi-data', async (req, res) => {
     }
 });
 
-apiRouter.get('/usuario', async(req, res) => {
-    try{
+apiRouter.get('/usuario', async (req, res) => {
+    try {
         const userId = req.user.id;
 
         const [rows] = await pool.query(
@@ -305,8 +305,8 @@ apiRouter.get('/usuario', async(req, res) => {
             [userId]
         );
 
-        if(rows.length === 0){
-            return res.status(404).json({erro: 'Usuário não encontrado!'});
+        if (rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado!' });
         }
 
         const usuario = rows[0];
@@ -314,9 +314,121 @@ apiRouter.get('/usuario', async(req, res) => {
             nome: usuario.nome,
             email: usuario.email
         })
-    }catch(erro){
+    } catch (erro) {
         console.error('ERRO ao buscar perfil do usuário: ', erro);
-        res.status(500).json({error: 'Erro ao buscar dados do usuário'});
+        res.status(500).json({ error: 'Erro ao buscar dados do usuário' });
+    }
+});
+
+//Histórico de cadastro
+apiRouter.get('/historico', async (req, res) => {
+    try {
+      // Primeiro, vamos descobrir a estrutura da tabela
+      const [columns] = await pool.query('SHOW COLUMNS FROM `data`');
+      console.log('Colunas da tabela data:', columns);
+      
+      // Query genérica que seleciona todas as colunas
+      const query = `
+        SELECT * FROM \`data\`
+        ORDER BY \`Data (AAAA-MM-DD HH:MM:SS)\` DESC
+        LIMIT 100
+      `;
+  
+      console.log('Executando query para histórico...');
+      const [results] = await pool.query(query);
+      console.log(`Encontrados ${results.length} registros no histórico`);
+      console.log('Primeiro registro:', results[0]);
+      
+      res.json(results);
+    } catch (erro) {
+      console.error('ERRO ao buscar histórico:', erro);
+      res.status(500).json({ 
+        error: 'Erro ao buscar histórico de produção',
+        detalhes: erro.message,
+        sql: erro.sql 
+      });
+    }
+  });
+
+//Cadastro de dados
+apiRouter.post('/cadastroDados', async (req, res) => {
+    try {
+        const {
+            data,
+            maquina,
+            tipoTecido,     // "1 - Cotton" → vai extrair o número
+            tipoSaida,      // "0 - Rolinho" → vai extrair o número
+            numeroTarefa,
+            tempoSetup,
+            tempoProducao,
+            quantidadeCarreiras,  // Mapear para "Quantidade de Trass"
+            metrosProduzidos,
+            observacoes,    // Campo novo
+            tarefaCompleta,
+            sobrasRolo
+        } = req.body;
+
+        if (!maquina || !tipoTecido || !tipoSaida || numeroTarefa == null) {
+            return res.status(400).json({ erro: 'Campos obrigatórios faltando.' });
+        }
+
+        const extractNumber = (str) => {
+            if (str === null || str === undefined) return 0;
+            const match = str.toString().match(/^(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        };
+
+        const tipoTecidoNumero = extractNumber(tipoTecido);
+        const tipoSaidaNumero = extractNumber(tipoSaida);
+
+        // Formatação da Data
+        let dataFormatada = null;
+        if (data) {
+            dataFormatada = new Date(data).toISOString().slice(0, 19).replace('T', ' ');
+        }
+
+        const sql = `
+            INSERT INTO \`data\` (
+                \`Data (AAAA-MM-DD HH:MM:SS)\`,
+                \`Maquina\`,
+                \`Tipo Tecido\`,
+                \`Tipo de Saida\`,
+                \`Numero da tarefa\`,
+                \`Tempo de setup\`,
+                \`Tempo de Produção\`,
+                \`Quantidade de Tiras\`,
+                \`Metros Produzidos\`,
+                \`Tarefa completa?\`,
+                \`Sobra de Rolo?\`
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const [result] = await pool.execute(sql, [
+            dataFormatada,
+            maquina,
+            tipoTecidoNumero,      // Número extraído (ex: 1)
+            tipoSaidaNumero,       // Número extraído (ex: 0)
+            numeroTarefa,
+            tempoSetup || 0,
+            tempoProducao || 0,
+            quantidadeCarreiras || 0,  // Mapeado para "Quantidade de Trass"
+            metrosProduzidos || 0,
+            tarefaCompleta ? 'TRUE' : 'FALSE',
+            sobrasRolo ? 'TRUE' : 'FALSE'
+        ]);
+
+        res.status(201).json({
+            mensagem: 'Registro de produção adicionado com sucesso!',
+            id: result.insertId
+        });
+
+    } catch (erro) {
+        console.error('ERRO NO CADASTRO:', erro);
+        res.status(500).json({
+            erro: 'Erro ao salvar no banco.',
+            detalhes: erro.message,
+            sql: erro.sql
+        });
     }
 });
 
@@ -381,7 +493,7 @@ app.post('/login', (req, res) => {
 
             res.status(200).json({
                 mensagem: 'Login realizado com sucesso!',
-                token: token, 
+                token: token,
                 usuario: { id: usuarioEncontrado.id, nome: usuarioEncontrado.nome }
             });
         })
@@ -394,6 +506,64 @@ app.post('/login', (req, res) => {
             }
 
             res.status(status).json({ erro: message })
+        });
+});
+
+app.put('/alterar-senha', (req, res) => {
+    const { email, senhaAtual, novaSenha } = req.body;
+
+    // Validações
+    if (!email || !senhaAtual || !novaSenha) {
+        return res.status(400).json({ erro: 'E-mail, senha atual e nova senha são obrigatórios' });
+    }
+
+    if (novaSenha.length < 6) {
+        return res.status(400).json({ erro: 'A nova senha deve ter pelo menos 6 caracteres' });
+    }
+
+    let usuarioEncontrado;
+
+    pool.query('SELECT id, nome, senha FROM usuario WHERE email = ?', [email])
+        .then(([rows]) => {
+            usuarioEncontrado = rows[0];
+
+            if (!usuarioEncontrado) {
+                return Promise.reject({ status: 404, message: 'Usuário não encontrado.' });
+            }
+
+            // Verificar se a senha atual está correta
+            return bcrypt.compare(senhaAtual, usuarioEncontrado.senha);
+        })
+        .then(match => {
+            if (!match) {
+                return Promise.reject({ status: 401, message: 'Senha atual incorreta.' });
+            }
+
+            // Criptografar a nova senha
+            return bcrypt.hash(novaSenha, 10);
+        })
+        .then(hashedNovaSenha => {
+            // Atualizar a senha no banco de dados
+            return pool.query('UPDATE usuario SET senha = ? WHERE email = ?', [hashedNovaSenha, email]);
+        })
+        .then(([result]) => {
+            if (result.affectedRows === 0) {
+                return Promise.reject({ status: 500, message: 'Erro ao atualizar senha.' });
+            }
+
+            res.status(200).json({
+                mensagem: 'Senha alterada com sucesso!'
+            });
+        })
+        .catch(error => {
+            const status = error.status || 500;
+            const message = error.message || 'Erro interno no servidor durante a alteração de senha.';
+
+            if (status === 500) {
+                console.error('ERRO interno na alteração de senha: ', error);
+            }
+
+            res.status(status).json({ erro: message });
         });
 });
 

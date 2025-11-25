@@ -12,10 +12,12 @@ import {
   ArcElement,
   RadialLinearScale,
   Filler
-} from 'chart.js'; 
+} from 'chart.js';
+
 import { Chart } from '@mlw-packages/react-components';
 import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
 
+// Registro dos componentes do Chart.js (necessário antes do uso)
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,10 +34,10 @@ ChartJS.register(
 
 const API_URL = "http://localhost:3000";
 
-const getToken = () => {
-  return localStorage.getItem('jwt_token');
-};
+// Recupera o token JWT armazenado no navegador
+const getToken = () => localStorage.getItem('jwt_token');
 
+// Função genérica para formatar dados recebidos do backend em formato compatível com Chart.js
 const formatarDadosChart = (backendData, label, backgroundColor, borderColor) => {
   if (!backendData || !backendData.labels || !backendData.data) {
     console.warn("Dados do backend inválidos ou ausentes:", backendData);
@@ -46,10 +48,10 @@ const formatarDadosChart = (backendData, label, backgroundColor, borderColor) =>
     labels: backendData.labels,
     datasets: [
       {
-        label: label,
+        label,
         data: backendData.data.map(d => parseFloat(d)),
-        backgroundColor: backgroundColor,
-        borderColor: borderColor,
+        backgroundColor,
+        borderColor,
         borderWidth: 1,
         fill: Array.isArray(backgroundColor) ? false : backgroundColor.includes('rgba'),
       },
@@ -57,9 +59,9 @@ const formatarDadosChart = (backendData, label, backgroundColor, borderColor) =>
   };
 };
 
+// Footer simples com texto acessível
 export const Footer: React.FC = () => {
   const { t } = useAccessibility();
-
   return (
     <footer className="mt-8 py-6 text-center text-sm text-[var(--text-muted)] border-t border-[var(--border)]">
       {t('footerCopyright')}
@@ -67,6 +69,7 @@ export const Footer: React.FC = () => {
   );
 };
 
+// Botões que alternam entre os gráficos
 const chartButtons = [
   { label: "machineEfficiency", key: "eficiencia", type: "bar" },
   { label: "productionTime", key: "producaoTempo", type: "line" },
@@ -77,8 +80,9 @@ const chartButtons = [
   { label: "stripQuantity", key: "tiras", type: "bar" },
 ];
 
-const chartKeys = chartButtons.map(b => b.key)
+const chartKeys = chartButtons.map(b => b.key);
 
+// Tipos de dados dos cartões de KPI
 interface KpiCardData {
   valor: string;
   comparativo: string;
@@ -95,9 +99,12 @@ interface KpiData {
 export const Dashboard: React.FC = () => {
   const { t } = useAccessibility();
 
+  // Gráfico ativo atual
   const [activeChart, setActiveChart] = useState<string>('eficiencia');
+  const [autoRotate, setAutoRotate] = useState<boolean>(true); // Estado para controle da rotação automática
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Armazena dados formatados de cada gráfico
   const [producaoTempoData, setProducaoTempoData] = useState({ labels: [], datasets: [] });
   const [eficienciaData, setEficienciaData] = useState({ labels: [], datasets: [] });
   const [producaoTecidoData, setProducaoTecidoData] = useState({ labels: [], datasets: [] });
@@ -106,32 +113,64 @@ export const Dashboard: React.FC = () => {
   const [setupData, setSetupData] = useState({ labels: [], datasets: [] });
   const [tirasData, setTirasData] = useState({ labels: [], datasets: [] });
 
+  // Estados para os KPIs
   const [kpiLoading, setKpiLoading] = useState<boolean>(true);
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
 
-  const formatarDadosParaChart = (chartData, xAxisKey, seriesKey, label) => {
-    if (!chartData.labels || chartData.labels.length === 0) {
-      return [];
-    }
-
+  // Transforma o dado bruto do backend em estrutura esperada pelo componente de gráficos da Malwee
+  const formatarDadosParaChart = (chartData, xAxisKey, seriesKey) => {
+    if (!chartData.labels?.length) return [];
     return chartData.labels.map((labelItem, index) => ({
       [xAxisKey]: labelItem,
       [seriesKey]: chartData.datasets?.[0]?.data?.[index] || 0
     }));
   };
 
-  const eficienciaChartData = formatarDadosParaChart(eficienciaData, 'periodo', 'eficiencia', t('machineEfficiency'));
-  const producaoTempoChartData = formatarDadosParaChart(producaoTempoData, 'periodo', 'producao', t('production'));
-  const producaoTecidoChartData = formatarDadosParaChart(producaoTecidoData, 'tecido', 'producao', t('production'));
-  const setupChartData = formatarDadosParaChart(setupData, 'periodo', 'setup', t('setupTime'));
-  const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras', t('stripQuantity'));
+  // Dados formatados para os gráficos
+  const eficienciaChartData = formatarDadosParaChart(eficienciaData, 'periodo', 'eficiencia');
+  const producaoTempoChartData = formatarDadosParaChart(producaoTempoData, 'periodo', 'producao');
+  const producaoTecidoChartData = formatarDadosParaChart(producaoTecidoData, 'tecido', 'producao');
+  const setupChartData = formatarDadosParaChart(setupData, 'periodo', 'setup');
+  const tirasChartData = formatarDadosParaChart(tirasData, 'periodo', 'tiras');
 
+  // Função para iniciar a rotação automática
+  const startAutoRotate = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = setInterval(() => {
+      setActiveChart(current => {
+        const i = chartKeys.indexOf(current);
+        return chartKeys[(i + 1) % chartKeys.length];
+      });
+    }, 10000);
+  };
+
+  // Função para parar a rotação automática
+  const stopAutoRotate = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Função para alternar entre pausar e retomar
+  const toggleAutoRotate = () => {
+    if (autoRotate) {
+      stopAutoRotate();
+    } else {
+      startAutoRotate();
+    }
+    setAutoRotate(!autoRotate);
+  };
+
+  // Carrega todos os dados assim que o dashboard é aberto
   useEffect(() => {
     const token = getToken();
 
-    // Se não tiver token, redireciona para o login imediatamente
+    // Se o token sumir, redireciona imediatamente
     if (!token) {
-      console.warn("Token não encontrado. Redirecionando...");
       window.location.href = "/login";
       return;
     }
@@ -143,10 +182,10 @@ export const Dashboard: React.FC = () => {
       window.location.href = "/login";
     };
 
+    // Função para chamar endpoints genéricos dos gráficos
     const fetchData = async (endpoint, setter, label, bg, border) => {
       try {
         const response = await fetch(`${API_URL}${endpoint}`, {
-          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -158,22 +197,23 @@ export const Dashboard: React.FC = () => {
           return;
         }
 
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar dados de ${endpoint}`);
-        }
+        if (!response.ok) throw new Error(`Erro ao buscar ${endpoint}`);
+
         const data = await response.json();
         setter(formatarDadosChart(data, label, bg, border));
-      } catch (error) {
-        console.error(error);
+
+      } catch (err) {
+        console.error(err);
         setter({ labels: [], datasets: [] });
       }
     };
 
+    // Carrega KPIs
     const fetchKpiData = async () => {
       setKpiLoading(true);
+
       try {
         const response = await fetch(`${API_URL}/api/kpi-data`, {
-          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -185,88 +225,56 @@ export const Dashboard: React.FC = () => {
           return;
         }
 
-        if (!response.ok) {
-          throw new Error('Erro ao buscar dados dos KPIs');
-        }
-        const data: KpiData = await response.json();
-        setKpiData(data);
+        if (!response.ok) throw new Error('Erro nos KPIs');
+
+        setKpiData(await response.json());
+
       } catch (error) {
         console.error(error);
         setKpiData(null);
       } finally {
-        setKpiLoading(false)
+        setKpiLoading(false);
       }
     };
 
     fetchKpiData();
 
-    fetchData(
-      "/api/chart-data",
-      setEficienciaData,
-      t('averageMeters'),
-      "rgba(75, 192, 192, 0.2)",
-      "rgba(75, 192, 192, 1)"
-    );
-    fetchData(
-      "/api/chart-producao-tempo",
-      setProducaoTempoData,
-      t('productionTime'),
-      "rgba(54, 162, 235, 0.2)",
-      "rgba(54, 162, 235, 1)"
-    );
-    fetchData(
-      "/api/chart-producao-tecido",
-      setProducaoTecidoData,
-      t('totalProduced'),
-      ["rgba(255, 159, 64, 0.5)", "rgba(75, 192, 192, 0.5)", "rgba(153, 102, 255, 0.5)", "rgba(255, 206, 86, 0.5)"],
-      ["rgba(255, 159, 64, 1)", "rgba(75, 192, 192, 1)", "rgba(153, 102, 255, 1)", "rgba(255, 206, 86, 1)"]
-    );
-    fetchData(
-      "/api/chart-localidades",
-      setLocalidadesData,
-      t('totalProduced'),
-      ["rgba(153, 102, 255, 0.5)", "rgba(54, 162, 235, 0.5)", "rgba(255, 99, 132, 0.5)", "rgba(75, 192, 192, 0.5)"],
-      ["rgba(153, 102, 255, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)", "rgba(75, 192, 192, 1)"]
-    );
-    fetchData(
-      "/api/chart-sobras",
-      setSobrasData,
-      t('rollWaste'),
-      ["rgba(255, 206, 86, 0.2)", "rgba(54, 162, 235, 0.2)"],
-      ["rgba(255, 206, 86, 1)", "rgba(54, 162, 235, 1)"]
-    );
-    fetchData(
-      "/api/chart-setup",
-      setSetupData,
-      t('averageTime'),
-      "rgba(255, 99, 132, 0.2)",
-      "rgba(255, 99, 132, 1)"
-    );
-    fetchData(
-      "/api/chart-tiras",
-      setTirasData,
-      t('occurrences'),
-      "rgba(192, 192, 192, 0.2)",
-      "rgba(192, 192, 192, 1)"
-    );
+    // Chamada para todos os gráficos
+    fetchData("/api/chart-data", setEficienciaData, t('averageMeters'),
+      "rgba(75, 192, 192, 0.2)", "rgba(75, 192, 192, 1)");
+
+    fetchData("/api/chart-producao-tempo", setProducaoTempoData, t('productionTime'),
+      "rgba(54, 162, 235, 0.2)", "rgba(54, 162, 235, 1)");
+
+    fetchData("/api/chart-producao-tecido", setProducaoTecidoData, t('totalProduced'),
+      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]); // resumido
+
+    fetchData("/api/chart-localidades", setLocalidadesData, t('totalProduced'),
+      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]);
+
+    fetchData("/api/chart-sobras", setSobrasData, t('rollWaste'),
+      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]);
+
+    fetchData("/api/chart-setup", setSetupData, t('averageTime'),
+      "rgba(255, 99, 132, 0.2)", "rgba(255, 99, 132, 1)");
+
+    fetchData("/api/chart-tiras", setTirasData, t('occurrences'),
+      "rgba(192,192,192,0.2)", "rgba(192,192,192,1)");
+
   }, [t]);
 
+  // Alternância automática dos gráficos a cada 10 segundos
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setActiveChart(currentChart => {
-        const currentIndex = chartKeys.indexOf(currentChart);
-        const nextIndex = (currentIndex + 1) % chartKeys.length;
-        return chartKeys[nextIndex]
-      });
-    }, 10000);
+    if (autoRotate) {
+      startAutoRotate();
+    }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      stopAutoRotate();
     };
-  }, []);
+  }, [autoRotate]);
 
+  // Renderiza o gráfico atual selecionado
   const renderActiveChart = () => {
     switch (activeChart) {
       case 'eficiencia':
@@ -280,6 +288,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'producaoTempo':
         return (
           <Chart
@@ -291,6 +300,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'producaoTecido':
         return (
           <Chart
@@ -302,6 +312,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'localidade':
         return (
           <Chart
@@ -316,6 +327,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'sobras':
         return (
           <Chart
@@ -330,6 +342,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'setup':
         return (
           <Chart
@@ -341,6 +354,7 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       case 'tiras':
         return (
           <Chart
@@ -352,57 +366,51 @@ export const Dashboard: React.FC = () => {
             height={350}
           />
         );
+
       default:
-        return (
-          <Chart
-            data={eficienciaChartData}
-            xAxis="periodo"
-            series={{ bar: ['eficiencia'] }}
-            labelMap={{ eficiencia: t('machineEfficiency') }}
-            colors={["#3b82f6"]}
-            height={350}
-          />
-        );
+        return null;
     }
   };
 
-  const handleChartButtonClick = (chartKey: string) => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    setActiveChart(chartKey);
-  }
-
+  // Renderiza conteúdo interno das KPIs
   const renderKpiCardContent = (data: KpiCardData | null | undefined) => {
-    const isLoading = kpiLoading || !data;
-    const valor = isLoading ? "..." : data!.valor;
-
+    const loading = kpiLoading || !data;
     return (
-      <>
-        <h2 className="text-2xl font-bold text-[var(--text)] mb-1">
-          {valor}
-        </h2>
-      </>
+      <h2 className="text-2xl font-bold text-[var(--text)] mb-1">
+        {loading ? "..." : data.valor}
+      </h2>
     );
-  }
+  };
 
   return (
-    <main className="flex flex-col min-h-screen md:ml-[80px] ml-0 bg-[var(--surface)] text-[var(--text)] px-4 md:px-0 overflow-x-hidden">
+    <main className="flex flex-col min-h-screen md:ml-[80px] ml-0 bg-[var(--surface)] text-[var(--text)] px-4 overflow-x-hidden">
+
+      {/* Título */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text)]">{t('malweeGroup')}</h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            {t('dataVisualizationCutting')}
-          </p>
+          <h1 className="text-2xl font-bold">{t('malweeGroup')}</h1>
+          <p className="text-sm text-[var(--text-muted)]">{t('dataVisualizationCutting')}</p>
         </div>
-        <div className="flex items-center gap-2 mt-4 md:mt-0"></div>
+
+        {/* Botão de controle da rotação automática */}
+        <button
+          onClick={toggleAutoRotate}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors mt-4 md:mt-0 ${autoRotate
+            ? 'bg-[#8E68FF] text-white'
+            : 'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)]'
+            }`}
+        >
+          <i className={`ri-${autoRotate ? 'pause' : 'play'}-line`}></i>
+          {autoRotate ? t('Pausar Rotação') || 'Pausar Rotação' : t('Retomar Rotação') || 'Retomar Rotação'}
+        </button>
       </div>
 
-      <h1 className="text-2xl font-semibold mb-6 text-[var(--text)]">{t('productionOverview')}</h1>
+      {/* KPIs */}
+      <h1 className="text-2xl font-semibold mb-6">{t('productionOverview')}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        {/* Eficiencia */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('machineEfficiency')}</h3>
@@ -411,6 +419,7 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.eficiencia)}
         </div>
 
+        {/* Atingimento */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('goalAchievement')}</h3>
@@ -419,6 +428,7 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.atingimento)}
         </div>
 
+        {/* Produção */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('totalProduction')}</h3>
@@ -427,6 +437,7 @@ export const Dashboard: React.FC = () => {
           {renderKpiCardContent(kpiData?.producao)}
         </div>
 
+        {/* Paradas */}
         <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl">
           <div className="flex justify-between items-center text-[var(--text-muted)] mb-2">
             <h3 className="text-sm">{t('stoppagesSetup')}</h3>
@@ -436,24 +447,37 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 min-w-0">
-        <div className="flex flex-wrap gap-2 mb-4 justify-center md:justify-start w-full">
+      {/* Container do gráfico */}
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
+
+        {/* Botões para troca manual dos gráficos */}
+        <div className="flex flex-wrap gap-2 mb-4 justify-center md:justify-start">
           {chartButtons.map((button) => (
             <button
               key={button.key}
-              onClick={() => handleChartButtonClick(button.key)}
-              className={`px-3 py-1 rounded-lg transition-colors duration-200
-              ${activeChart === button.key
+              onClick={() => setActiveChart(button.key)}
+              className={`px-3 py-1 rounded-lg transition-colors 
+                ${activeChart === button.key
                   ? 'bg-[#8E68FF] text-white font-medium'
-                  : 'bg-[var(--surface)] text-[var(--text)]'
-                }`}
+                  : 'bg-[var(--surface)] text-[var(--text)]'}
+              `}
             >
               {t(button.label)}
             </button>
           ))}
         </div>
 
-        <div className="relative w-full h-[50vh] md:h-[400px] max-w-full overflow-x-hidden" id="chart-container">
+        {/* Indicador de rotação automática */}
+        <div className="flex items-center justify-center mb-4 text-sm text-[var(--text-muted)]">
+          <i className={`ri-${autoRotate ? 'play' : 'pause'}-line mr-2`}></i>
+          {autoRotate
+            ? (t('Rotação automática ativada') || 'Rotação automática ativada')
+            : (t('Rotação automática pausada') || 'Rotação automática pausada')
+          }
+        </div>
+
+        {/* Gráfico */}
+        <div className="relative w-full h-[50vh] md:h-[400px] overflow-hidden">
           {renderActiveChart()}
         </div>
       </div>
