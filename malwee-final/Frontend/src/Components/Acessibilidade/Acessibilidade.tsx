@@ -57,7 +57,7 @@ const AcessibilityModal: React.FC = () => {
               variant="secondary"
               onClick={() => setModalContent(null)}
             >
-              {t("cancel") || "Cancelar"}
+              {t("cancel")}
             </ButtonBase>
             <ButtonBase type="submit">
               {t("modalFeedbackSubmit")}
@@ -94,9 +94,9 @@ export const Acessibilidade: React.FC = () => {
   ];
 
   return (
-    <main className="accessibility-container">
+    <main className="flex flex-col min-h-screen md:ml-[80px] ml-0 bg-[var(--surface)] text-[var(--text)] px-4 overflow-x-hidden">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--text)]">Grupo Malwee</h1>
+        <h1 className="text-3xl font-bold text-[var(--text)]">{t("malweeGroup")}</h1>
         <p className="text-[var(--text-muted)] text-lg">
           {t("title")}
         </p>
@@ -105,19 +105,19 @@ export const Acessibilidade: React.FC = () => {
         </p>
       </header>
 
-      <section className="accessibility-card">
-        <div className="flex justify-between items-center mb-6">
+      <section className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 shadow-md">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex-1 max-w-[200px]">
             <LabelBase htmlFor="language-combobox" className="sr-only">
-              Selecionar Idioma
+              {t("selectLanguage")}
             </LabelBase>
             <Combobox
               items={languageOptions}
               selected={language}
               onChange={(value) => value !== null && setLanguage(value as "pt-BR" | "en-US")}
               label=""
-              placeholder="Selecionar idioma"
-              searchPlaceholder="Buscar idioma..."
+              placeholder={t("selectLanguage")}
+              searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
 
@@ -138,7 +138,7 @@ export const Acessibilidade: React.FC = () => {
           {t("toolsTitle")}
         </h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {toolKeys.map((toolKey) => {
             const label = t(toolKey);
             const isActive = activeTools.includes(toolKey);
@@ -147,15 +147,17 @@ export const Acessibilidade: React.FC = () => {
                 key={toolKey}
                 onClick={() => handleToggleTool(toolKey)}
                 variant={isActive ? "default" : "outline"}
-                className={`flex flex-col items-center justify-center p-6 h-auto min-h-[120px] ${isActive
+                className={`flex flex-col items-center justify-center p-6 h-auto min-h-[120px] ${
+                  isActive
                     ? "bg-[var(--accent)] text-white"
                     : "bg-[var(--surface)] text-[var(--text)] border-[var(--border)]"
-                  }`}
+                }`}
                 aria-pressed={isActive}
               >
                 <i
-                  className={`ri-tools-line text-3xl mb-3 ${isActive ? 'text-white' : 'text-[var(--text)]'
-                    }`}
+                  className={`ri-tools-line text-3xl mb-3 ${
+                    isActive ? 'text-white' : 'text-[var(--text)]'
+                  }`}
                 ></i>
                 <p className="text-base font-medium">{label}</p>
               </ButtonBase>
@@ -180,9 +182,9 @@ export const Acessibilidade: React.FC = () => {
             />
           </div>
           <div className="text-sm text-[var(--text-muted)] mt-2">
-            {customContrast >= 80 && " (Alto Contraste Claro)"}
-            {customContrast <= 20 && " (Alto Contraste Escuro)"}
-            {customContrast === 50 && " (Normal)"}
+            {customContrast >= 80 && t("highContrastLight")}
+            {customContrast <= 20 && t("highContrastDark")}
+            {customContrast === 50 && t("normalContrast")}
           </div>
         </div>
 
@@ -196,7 +198,7 @@ export const Acessibilidade: React.FC = () => {
               variant="outline"
               size="icon"
               onClick={handleFontSizeDecrease}
-              aria-label="Diminuir tamanho da fonte"
+              aria-label={t("decreaseFontSize")}
             >
               -
             </ButtonBase>
@@ -207,7 +209,7 @@ export const Acessibilidade: React.FC = () => {
               variant="outline"
               size="icon"
               onClick={handleFontSizeIncrease}
-              aria-label="Aumentar tamanho da fonte"
+              aria-label={t("increaseFontSize")}
             >
               +
             </ButtonBase>
@@ -217,7 +219,7 @@ export const Acessibilidade: React.FC = () => {
         {/* Botões de Tema */}
         <div className="mb-8">
           <LabelBase className="text-sm mb-2 text-[var(--text-muted)] block">
-            {t("theme") || "Tema"}
+            {t("theme")}
           </LabelBase>
           <div className="flex gap-3">
             <ButtonBase
@@ -226,7 +228,7 @@ export const Acessibilidade: React.FC = () => {
               className="flex items-center justify-center gap-2 flex-1"
             >
               <i className="ri-sun-line text-[18px]"></i>
-              <span>{t("lightTheme") || "Claro"}</span>
+              <span>{t("lightTheme")}</span>
             </ButtonBase>
 
             <ButtonBase
@@ -235,7 +237,7 @@ export const Acessibilidade: React.FC = () => {
               className="flex items-center justify-center gap-2 flex-1"
             >
               <i className="ri-moon-line text-[18px]"></i>
-              <span>{t("darkTheme") || "Escuro"}</span>
+              <span>{t("darkTheme")}</span>
             </ButtonBase>
           </div>
         </div>
@@ -259,8 +261,7 @@ export const Acessibilidade: React.FC = () => {
                 const formData = new FormData(e.currentTarget);
                 const feedback = formData.get('feedback') as string;
                 console.log("Feedback enviado:", feedback);
-                alert("Feedback enviado com sucesso!");
-                // Reset do formulário
+                alert(t("feedbackSuccess"));
                 e.currentTarget.reset();
               }}>
                 <div className="mb-4">
@@ -280,7 +281,7 @@ export const Acessibilidade: React.FC = () => {
                 <ModalFooterBase>
                   <ModalTriggerBase asChild>
                     <ButtonBase type="button" variant="secondary">
-                      {t("cancel") || "Cancelar"}
+                      {t("cancel")}
                     </ButtonBase>
                   </ModalTriggerBase>
                   <ButtonBase type="submit">

@@ -247,13 +247,13 @@ export const Dashboard: React.FC = () => {
       "rgba(54, 162, 235, 0.2)", "rgba(54, 162, 235, 1)");
 
     fetchData("/api/chart-producao-tecido", setProducaoTecidoData, t('totalProduced'),
-      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]); // resumido
+      ["rgba(255, 99, 132, 0.2)", "rgba(54, 162, 235, 0.2)"], ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"]);
 
     fetchData("/api/chart-localidades", setLocalidadesData, t('totalProduced'),
-      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]);
+      ["rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"], ["rgba(255, 205, 86, 1)", "rgba(75, 192, 192, 1)"]);
 
     fetchData("/api/chart-sobras", setSobrasData, t('rollWaste'),
-      ["rgba(...)", "rgba(...)"], ["rgba(...)", "rgba(...)"]);
+      ["rgba(153, 102, 255, 0.2)", "rgba(255, 159, 64, 0.2)"], ["rgba(153, 102, 255, 1)", "rgba(255, 159, 64, 1)"]);
 
     fetchData("/api/chart-setup", setSetupData, t('averageTime'),
       "rgba(255, 99, 132, 0.2)", "rgba(255, 99, 132, 1)");
@@ -395,13 +395,14 @@ export const Dashboard: React.FC = () => {
         {/* Botão de controle da rotação automática */}
         <button
           onClick={toggleAutoRotate}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors mt-4 md:mt-0 ${autoRotate
-            ? 'bg-[#8E68FF] text-white'
-            : 'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)]'
-            }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors mt-4 md:mt-0 ${
+            autoRotate
+              ? 'bg-[#8E68FF] text-white'
+              : 'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)]'
+          }`}
         >
           <i className={`ri-${autoRotate ? 'pause' : 'play'}-line`}></i>
-          {autoRotate ? t('Pausar Rotação') || 'Pausar Rotação' : t('Retomar Rotação') || 'Retomar Rotação'}
+          {autoRotate ? t('pauseRotation') : t('resumeRotation')}
         </button>
       </div>
 
@@ -457,9 +458,11 @@ export const Dashboard: React.FC = () => {
               key={button.key}
               onClick={() => setActiveChart(button.key)}
               className={`px-3 py-1 rounded-lg transition-colors 
-                ${activeChart === button.key
-                  ? 'bg-[#8E68FF] text-white font-medium'
-                  : 'bg-[var(--surface)] text-[var(--text)]'}
+                ${
+                  activeChart === button.key
+                    ? 'bg-[#8E68FF] text-white font-medium'
+                    : 'bg-[var(--surface)] text-[var(--text)]'
+                }
               `}
             >
               {t(button.label)}
@@ -470,10 +473,7 @@ export const Dashboard: React.FC = () => {
         {/* Indicador de rotação automática */}
         <div className="flex items-center justify-center mb-4 text-sm text-[var(--text-muted)]">
           <i className={`ri-${autoRotate ? 'play' : 'pause'}-line mr-2`}></i>
-          {autoRotate
-            ? (t('Rotação automática ativada') || 'Rotação automática ativada')
-            : (t('Rotação automática pausada') || 'Rotação automática pausada')
-          }
+          {autoRotate ? t('autoRotationEnabled') : t('autoRotationPaused')}
         </div>
 
         {/* Gráfico */}

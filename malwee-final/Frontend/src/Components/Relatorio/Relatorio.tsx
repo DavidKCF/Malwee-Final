@@ -62,7 +62,7 @@ export const Relatorio: React.FC = () => {
 
   // Opções para os combobox
   const tipoTecidoItems = [
-    { label: 'Todos', value: 'all' },
+    { label: t('all'), value: 'all' },
     { label: '0 - meia malha', value: '0' },
     { label: '1 - cotton', value: '1' },
     { label: '2 - punho pun', value: '2' },
@@ -73,7 +73,7 @@ export const Relatorio: React.FC = () => {
 
   // Opções para Tipo de Saída
   const tipoSaidaItems = [
-    { label: 'Todos', value: 'all' },
+    { label: t('all'), value: 'all' },
     { label: '0 - rolinho', value: '0' },
     { label: '1 - fraldado', value: '1' },
   ];
@@ -259,9 +259,9 @@ export const Relatorio: React.FC = () => {
           item.MetrosProduzidos?.toString() || '',
           item.TempoSetup?.toString() || '',
           item.TempoProducao?.toString() || '',
-          item.TarefaCompleta ? 'sim completo' : 'não incompleto',
-          item.SobraRolo ? 'sobra' : 'sem sobra',
-          item.TipoSaida ? (item.TipoSaida === 0 ? 'rolinho' : 'fraldado') : '',
+          item.TarefaCompleta ? t('completeTasks') : t('incompleteTasks'),
+          item.SobraRolo ? t('withWaste') : t('withoutWaste'),
+          item.TipoSaida ? (item.TipoSaida === 0 ? t('rollType') : t('diaperType')) : '',
           new Date(item.Data).toLocaleDateString('pt-BR')
         ].join(' ').toLowerCase();
 
@@ -270,7 +270,7 @@ export const Relatorio: React.FC = () => {
 
       return true;
     });
-  }, [producaoData, filters]);
+  }, [producaoData, filters, t]);
 
   const { paginatedData, totalPages } = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -295,7 +295,7 @@ export const Relatorio: React.FC = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída'
+      t('typeofexit')
     ].join('\t');
 
     const tsvRows = filteredData.map(item => [
@@ -307,7 +307,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       item.TarefaCompleta ? t('yes') : t('no'),
-      item.TipoSaida === 0 ? 'rolinho' : 'fraldado'
+      item.TipoSaida === 0 ? t('rollType') : t('diaperType')
     ].join('\t'));
 
     const tsv = [headers, ...tsvRows].join('\n');
@@ -338,7 +338,7 @@ export const Relatorio: React.FC = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída'
+      t('typeofexit')
     ];
 
     const csvRows = filteredData.map(item => [
@@ -350,7 +350,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
-      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"`
+      `"${item.TipoSaida === 0 ? t('rollType') : t('diaperType')}"`
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
@@ -370,7 +370,7 @@ export const Relatorio: React.FC = () => {
     const headers = [
       t('date'), t('machine'), t('fabricType'), t('taskNumber'),
       t('setupTime'), t('productionTime'), t('metersProduced'), t('complete'),
-      'Tipo Saída'
+      t('typeofexit')
     ];
 
     const csvRows = filteredData.map(item => [
@@ -382,7 +382,7 @@ export const Relatorio: React.FC = () => {
       item.TempoProducao,
       item.MetrosProduzidos,
       `"${item.TarefaCompleta ? t('yes') : t('no')}"`,
-      `"${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}"`
+      `"${item.TipoSaida === 0 ? t('rollType') : t('diaperType')}"`
     ].join(','));
 
     const csv = [headers.join(','), ...csvRows].join('\n');
@@ -402,9 +402,9 @@ export const Relatorio: React.FC = () => {
     const content = `
       ${t('productionReport')}
       
-      ${t('date')} | ${t('machine')} | ${t('fabricType')} | ${t('taskNumber')} | ${t('setupTime')} | ${t('productionTime')} | ${t('metersProduced')} | ${t('complete')} | Tipo Saída
+      ${t('date')} | ${t('machine')} | ${t('fabricType')} | ${t('taskNumber')} | ${t('setupTime')} | ${t('productionTime')} | ${t('metersProduced')} | ${t('complete')} | ${t('typeofexit')}
       ${filteredData.map(item =>
-      `${new Date(item.Data).toLocaleString('pt-BR')} | ${item.Maquina || "-"} | ${item.TipoTecido} | ${item.NumeroTarefa} | ${item.TempoSetup} | ${item.TempoProducao} | ${item.MetrosProduzidos} | ${item.TarefaCompleta ? t('yes') : t('no')} | ${item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}`
+      `${new Date(item.Data).toLocaleString('pt-BR')} | ${item.Maquina || "-"} | ${item.TipoTecido} | ${item.NumeroTarefa} | ${item.TempoSetup} | ${item.TempoProducao} | ${item.MetrosProduzidos} | ${item.TarefaCompleta ? t('yes') : t('no')} | ${item.TipoSaida === 0 ? t('rollType') : t('diaperType')}`
     ).join('\n')}
     `;
 
@@ -421,7 +421,7 @@ export const Relatorio: React.FC = () => {
 
   // --- Renderização ---
   return (
-    <main className="flex flex-col min-h-screen ml-[80px] bg-[var(--surface)] text-[var(--text)]">
+    <main className="flex flex-col min-h-screen md:ml-[80px] ml-0 bg-[var(--surface)] text-[var(--text)] px-4 overflow-x-hidden">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">{t('malweeGroup')}</h1>
         <p className="text-[var(--text-muted)] text-lg">{t('dataVisualizationSewing')}</p>
@@ -463,7 +463,7 @@ export const Relatorio: React.FC = () => {
             </LabelBase>
             <Combobox
               items={[
-                { value: "all", label: "Todos" },
+                { value: "all", label: t('all') },
                 ...maquinaOptions.map(maquina => ({
                   value: maquina,
                   label: maquina
@@ -472,8 +472,8 @@ export const Relatorio: React.FC = () => {
               selected={filters.maquina}
               onChange={handleMaquinaChange}
               label=""
-              placeholder={t("selectOption") || "Selecionar máquina"}
-              searchPlaceholder={t("searchPlaceholder") || "Buscar..."}
+              placeholder={t("selectOption")}
+              searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
 
@@ -503,18 +503,19 @@ export const Relatorio: React.FC = () => {
                   checked={filters.tarefaCompleta === "true"}
                   onCheckedChange={handleTarefaCompletaSimChange}
                 />
-                <span className="text-sm text-[var(--text)]">Completas</span>
+                <span className="text-sm text-[var(--text)]">{t('completeTasks')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckboxBase
                   checked={filters.tarefaCompleta === "false"}
                   onCheckedChange={handleTarefaCompletaNaoChange}
                 />
-                <span className="text-sm text-[var(--text)]">Incompletas</span>
+                <span className="text-sm text-[var(--text)]">{t('incompleteTasks')}</span>
               </div>
             </div>
           </div>
 
+          {/* Tipo de Saída */}
           <div>
             <LabelBase className="block text-sm text-[var(--text-muted)] mb-2">
               {t("typeofexit")}
@@ -524,7 +525,7 @@ export const Relatorio: React.FC = () => {
               selected={filters.tipoSaida}
               onChange={handleTipoSaidaChange}
               label=""
-              placeholder="Selecionar tipo"
+              placeholder={t("selectOption")}
               searchPlaceholder={t("searchPlaceholder")}
             />
           </div>
@@ -540,18 +541,17 @@ export const Relatorio: React.FC = () => {
                   checked={filters.sobraRolo === "true"}
                   onCheckedChange={handleSobraRoloSimChange}
                 />
-                <span className="text-sm text-[var(--text)]">Com sobra</span>
+                <span className="text-sm text-[var(--text)]">{t('withWaste')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckboxBase
                   checked={filters.sobraRolo === "false"}
                   onCheckedChange={handleSobraRoloNaoChange}
                 />
-                <span className="text-sm text-[var(--text)]">Sem sobra</span>
+                <span className="text-sm text-[var(--text)]">{t('withoutWaste')}</span>
               </div>
             </div>
           </div>
-
 
           {/* Botão Limpar Filtros */}
           <div className="flex items-end">
@@ -659,7 +659,7 @@ export const Relatorio: React.FC = () => {
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-purple-100 text-purple-800'
                         }`}>
-                        {item.TipoSaida === 0 ? 'rolinho' : 'fraldado'}
+                        {item.TipoSaida === 0 ? t('rollType') : t('diaperType')}
                       </span>
                     </td>
                   </tr>

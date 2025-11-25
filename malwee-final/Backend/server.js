@@ -323,32 +323,36 @@ apiRouter.get('/usuario', async (req, res) => {
 //Histórico de cadastro
 apiRouter.get('/historico', async (req, res) => {
     try {
-      // Primeiro, vamos descobrir a estrutura da tabela
-      const [columns] = await pool.query('SHOW COLUMNS FROM `data`');
-      console.log('Colunas da tabela data:', columns);
-      
-      // Query genérica que seleciona todas as colunas
-      const query = `
+        const query = `
         SELECT * FROM \`data\`
         ORDER BY \`Data (AAAA-MM-DD HH:MM:SS)\` DESC
-        LIMIT 100
+        LIMIT 3
       `;
-  
-      console.log('Executando query para histórico...');
-      const [results] = await pool.query(query);
-      console.log(`Encontrados ${results.length} registros no histórico`);
-      console.log('Primeiro registro:', results[0]);
-      
-      res.json(results);
+
+        console.log('🔍 Executando query para histórico...');
+        console.log('📋 Query:', query);
+
+        const [results] = await pool.query(query);
+
+        console.log(`✅ Encontrados ${results.length} registros no histórico`);
+
+        if (results.length > 0) {
+            console.log('📄 Primeiro registro:', JSON.stringify(results[0], null, 2));
+            console.log('🏷️ Colunas do primeiro registro:', Object.keys(results[0]));
+        } else {
+            console.log('📭 Nenhum registro encontrado na tabela data');
+        }
+
+        res.json(results);
     } catch (erro) {
-      console.error('ERRO ao buscar histórico:', erro);
-      res.status(500).json({ 
-        error: 'Erro ao buscar histórico de produção',
-        detalhes: erro.message,
-        sql: erro.sql 
-      });
+        console.error('❌ ERRO ao buscar histórico:', erro);
+        res.status(500).json({
+            error: 'Erro ao buscar histórico de produção',
+            detalhes: erro.message,
+            sql: erro.sql
+        });
     }
-  });
+});
 
 //Cadastro de dados
 apiRouter.post('/cadastroDados', async (req, res) => {

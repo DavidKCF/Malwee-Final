@@ -113,7 +113,7 @@ export const CadastroDados: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log("Fazendo requisição para /api/historico...");
+      console.log("🔄 Fazendo requisição para /api/historico...");
 
       const response = await fetch("http://localhost:3000/api/historico", {
         method: "GET",
@@ -122,7 +122,7 @@ export const CadastroDados: React.FC = () => {
         },
       });
 
-      console.log("Status da resposta:", response.status);
+      console.log("📊 Status da resposta:", response.status);
 
       if (response.status === 401 || response.status === 403) {
         alert("Sessão expirada. Faça login novamente.");
@@ -133,34 +133,53 @@ export const CadastroDados: React.FC = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Erro detalhado do servidor:", errorText);
+        console.error("❌ Erro do servidor:", errorText);
         throw new Error(`Erro ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Dados recebidos:", data);
+      console.log("✅ Dados recebidos da API:", data);
+
+      // Verificar se há dados
+      if (!data || data.length === 0) {
+        console.log("📭 Nenhum dado encontrado no banco");
+        setHistoryData([]);
+        return;
+      }
 
       // Transformar os dados da API para o formato do frontend
-      const formattedData: HistoryItem[] = data.map((item: any) => ({
-        id: item.id,
-        data: new Date(item.data),
-        maquina: item.maquina,
-        tipoTecido: getFabricTypeLabel(item.tipoTecido),
-        tipoSaida: getOutputTypeLabel(item.tipoSaida),
-        numeroTarefa: item.numeroTarefa,
-        tempoSetup: item.tempoSetup,
-        tempoProducao: item.tempoProducao,
-        quantidadeCarreiras: item.quantidadeCarreiras,
-        metrosProduzidos: item.metrosProduzidos,
-        observacoes: item.observacoes || "",
-        tarefaCompleta: item.tarefaCompleta === 'TRUE' || item.tarefaCompleta === true || item.tarefaCompleta === 1,
-        sobrasRolo: item.sobrasRolo === 'TRUE' || item.sobrasRolo === true || item.sobrasRolo === 1
-      }));
+      const formattedData: HistoryItem[] = data.map((item: any, index: number) => {
+        console.log(`📝 Processando item ${index}:`, item);
 
-      setHistoryData(formattedData);
+        const formattedItem = {
+          id: item.id || `temp-${index}-${Date.now()}`,
+          data: new Date(item.data),
+          maquina: item.Maquina || item.maquina || "N/A",
+          tipoTecido: getFabricTypeLabel(item['Tipo Tecido'] || item.tipoTecido),
+          tipoSaida: getOutputTypeLabel(item['Tipo de Saida'] || item.tipoSaida),
+          numeroTarefa: item['Numero da tarefa'] || item.numeroTarefa || 0,
+          tempoSetup: item['Tempo de setup'] || item.tempoSetup || 0,
+          tempoProducao: item['Tempo de Produção'] || item.tempoProducao || 0,
+          quantidadeCarreiras: item['Quantidade de Trass'] || item.quantidadeCarreiras || 0,
+          metrosProduzidos: item['Metros Produzidos'] || item.metrosProduzidos || 0,
+          observacoes: item.observacoes || item.Observações || "",
+          tarefaCompleta: item['Tarefa completa?'] === 'TRUE' || item.tarefaCompleta === true || item.tarefaCompleta === 1,
+          sobrasRolo: item['Sobra de Rolo?'] === 'TRUE' || item.sobrasRolo === true || item.sobrasRolo === 1
+        };
+
+        console.log(`🎯 Item ${index} formatado:`, formattedItem);
+        return formattedItem;
+      });
+
+      console.log("📦 Dados formatados:", formattedData);
+
+      // Pegar apenas os últimos 3 registros
+      const lastThreeRecords = formattedData.slice(0, 3);
+      setHistoryData(lastThreeRecords);
+
     } catch (error) {
-      console.error("Erro ao carregar histórico:", error);
-      alert("Não foi possível carregar o histórico de produção. Verifique o console.");
+      console.error("❌ Erro ao carregar histórico:", error);
+      alert("Não foi possível carregar o histórico de produção");
     } finally {
       setLoading(false);
     }
