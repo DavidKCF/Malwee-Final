@@ -111,7 +111,7 @@ export const Usuario: React.FC = () => {
 
   const handleChangePassword = () => {
     console.log("Redirecionando para página de alteração de senha...");
-    navigate('/alterar-senha'); // Redireciona para a página de alterar senha
+    navigate('/alterar-senha'); 
   };
 
   return (
@@ -125,7 +125,6 @@ export const Usuario: React.FC = () => {
             </p>
           </header>
 
-          {/* Foto do usuário */}
           <div className="flex items-center gap-6 mb-6">
             <img
               src={UserAvatar}
