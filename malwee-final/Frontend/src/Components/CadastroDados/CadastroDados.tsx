@@ -20,7 +20,6 @@ import {
   CloseButton,
 } from "@mlw-packages/react-components";
 
-// Interface para os itens do histórico
 interface HistoryItem {
   id: number;
   data: Date;
@@ -41,7 +40,6 @@ export const CadastroDados: React.FC = () => {
   const { t, language } = useAccessibility();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
-  // Estados para os campos do formulário
   const [maquina, setMaquina] = useState("");
   const [fabricType, setFabricType] = useState("0");
   const [outputType, setOutputType] = useState("0");
@@ -63,7 +61,6 @@ export const CadastroDados: React.FC = () => {
   const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Opções numéricas para os Combobox
   const fabricOptions = [
     "0 - Meia Malha",
     "1 - Cotton",
@@ -81,7 +78,6 @@ export const CadastroDados: React.FC = () => {
     value: n,
   }));
 
-  // Funções auxiliares para converter números em labels
   const getFabricTypeLabel = (typeNumber: number): string => {
     const fabricTypes: { [key: number]: string } = {
       0: "0 - Meia Malha",
@@ -102,7 +98,6 @@ export const CadastroDados: React.FC = () => {
     return outputTypes[typeNumber] || `Saída ${typeNumber}`;
   };
 
-  // Função para carregar dados do histórico
   const loadHistoryData = async () => {
     const token = localStorage.getItem("jwt_token");
 

@@ -143,7 +143,7 @@ export const Registro: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`w-full py-3 rounded-lg bg-[var(--accent)] text-white font-medium border border-transparent transition-all duration-200 ease-in-out shadow-md text-center block
+                                    className={`w-full py-3 rounded-lg bg-[var(--accent)] font-medium border border-transparent transition-all duration-200 ease-in-out shadow-md text-center block
                                         ${loading ? 'opacity-70 cursor-wait' : 'hover:bg-[var(--accent)]/90 hover:scale-[1.02] hover:shadow-lg'}
                                     `}
                                 >

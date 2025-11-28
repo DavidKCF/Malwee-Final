@@ -10,9 +10,10 @@ import React, {
   ReactNode,
 } from "react";
 
-// Objeto principal contendo traduções para cada idioma suportado.
-// "pt-BR" = Português do Brasil
-// "en-US" = Inglês Americano
+//Objeto de traduções para internacionalização (i18n)
+//Contém todas as strings da aplicação em português brasileiro e inglês americano
+//Organizado por funcionalidades e páginas da aplicação
+
 const translations = {
   "pt-BR": {
     selectLanguage: "Selecionar Idioma",
@@ -603,11 +604,16 @@ const translations = {
   },
 };
 
+// Chaves das ferramentas de acessibilidade disponíveis
 export const toolKeys = ["tool1", "tool2"];
 
+//Hook personalizado para gerenciar estado persistente no localStorage
+//Combina useState com localStorage para persistir dados entre sessões
+ 
 function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
+      // Tenta recuperar valor do localStorage ao inicializar
       const storedValue = window.localStorage.getItem(key);
       return storedValue ? (JSON.parse(storedValue) as T) : defaultValue;
     } catch (error) {
@@ -616,6 +622,7 @@ function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch
     }
   });
 
+  // Atualiza localStorage sempre que o estado muda
   useEffect(() => {
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
@@ -627,13 +634,18 @@ function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch
   return [state, setState];
 }
 
+// Tipo para os modais disponíveis no sistema
 type ModalType = "feedback" | null;
 
+//Interface que define o formato do contexto de acessibilidade
+//Contém todos os estados e funções disponíveis para os consumidores
 interface AccessibilityContextState {
+  // Localização e tradução
   language: "pt-BR" | "en-US";
   setLanguage: React.Dispatch<React.SetStateAction<"pt-BR" | "en-US">>;
   t: (key: keyof typeof translations["pt-BR"]) => string;
 
+  // Ferramentas de acessibilidade
   activeTools: string[];
   setActiveTools: React.Dispatch<React.SetStateAction<string[]>>;
   customContrast: number;
@@ -643,11 +655,13 @@ interface AccessibilityContextState {
   cursorType: "claro" | "escuro" | null;
   setCursorType: React.Dispatch<React.SetStateAction<"claro" | "escuro" | null>>;
 
+  // Interface do widget
   isWidgetVisible: boolean;
   setIsWidgetVisible: React.Dispatch<React.SetStateAction<boolean>>;
   modalContent: ModalType;
   setModalContent: React.Dispatch<React.SetStateAction<ModalType>>;
 
+  // Ações do usuário
   handleToggleTool: (toolKey: string) => void;
   handleFontSizeIncrease: () => void;
   handleFontSizeDecrease: () => void;
@@ -657,10 +671,12 @@ interface AccessibilityContextState {
   handleSendFeedback: () => void;
 }
 
+// Criação do contexto React
 const AccessibilityContext = createContext<AccessibilityContextState | undefined>(
   undefined
 );
 
+//Hook personalizado para consumir o contexto de acessibilidade
 export function useAccessibility() {
   const context = useContext(AccessibilityContext);
   if (!context) {
@@ -671,18 +687,21 @@ export function useAccessibility() {
   return context;
 }
 
-// --- O PROVIDER PRINCIPAL ---
+//Provider principal que gerencia todo o estado de acessibilidade
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
+  // Estados persistentes (salvos no localStorage)
   const [language, setLanguage] = usePersistentState<"pt-BR" | "en-US">("acess-lang", "pt-BR");
   const [activeTools, setActiveTools] = usePersistentState<string[]>("acess-tools", []);
   const [customContrast, setCustomContrast] = usePersistentState("acess-custom-contrast", 50);
   const [fontSize, setFontSize] = usePersistentState("acess-font-size", 16);
   const [cursorType, setCursorType] = usePersistentState<"claro" | "escuro" | null>("acess-cursor", null);
 
+  // Estados de interface (não persistentes)
   const [isWidgetVisible, setIsWidgetVisible] = usePersistentState("acess-widget-visible", true);
   const [modalContent, setModalContent] = useState<ModalType>(null);
 
-  // --- Função de Tradução ---
+  //Função de tradução que retorna o texto correspondente à chave no idioma atual
+  //Usa useCallback para evitar recriações desnecessárias
   const t = useCallback(
     (key: keyof typeof translations["pt-BR"]) => {
       return translations[language][key] || key;
@@ -690,6 +709,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     [language]
   );
 
+//Alterna uma ferramenta entre ativa/inativa
+//Se a ferramenta está ativa, remove da lista; se está inativa, adiciona
   const handleToggleTool = useCallback((toolKey: string) => {
     setActiveTools((prevTools) =>
       prevTools.includes(toolKey)
@@ -698,10 +719,17 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     );
   }, [setActiveTools]);
 
+  //Aumenta o tamanho da fonte em 1px
+  
   const handleFontSizeIncrease = useCallback(() => setFontSize((prev) => prev + 1), [setFontSize]);
+
+  //Diminui o tamanho da fonte em 1px, com limite mínimo de 10px
   const handleFontSizeDecrease = useCallback(() => setFontSize((prev) => (prev > 10 ? prev - 1 : prev)), [setFontSize]);
 
+  //Reseta todas as configurações de acessibilidade para os valores padrão
+  //Limpa localStorage e remove todos os estilos aplicados
   const handleResetAll = useCallback(() => {
+    // Reseta estados
     setLanguage("pt-BR");
     setActiveTools([]);
     setCustomContrast(50);
@@ -720,7 +748,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       }
     });
     
-    // Resetar estilos aplicados
+    // Resetar estilos aplicados no DOM
     document.documentElement.style.fontSize = "16px";
     document.documentElement.style.filter = "none";
     document.body.classList.remove("cursor-dark", "cursor-light", "keyboard-nav-active");
@@ -728,10 +756,15 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     console.log("Todas as configurações de acessibilidade foram resetadas");
   }, [setLanguage, setActiveTools, setCustomContrast, setFontSize, setCursorType, setIsWidgetVisible]);
 
+  //Oculta o widget de acessibilidade
+  
   const handleHideMenu = useCallback(() => {
     setIsWidgetVisible(false);
     console.log("Menu de acessibilidade ocultado");
   }, [setIsWidgetVisible]);
+
+  //Desativa completamente a acessibilidade
+  //Reseta todas as configurações e oculta o widget
 
   const handleDisableAcessibility = useCallback(() => {
     handleResetAll();
@@ -739,9 +772,13 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     console.log("Acessibilidade desativada");
   }, [handleResetAll, setIsWidgetVisible]);
 
+  //Abre o modal de feedback
+   
   const handleSendFeedback = () => setModalContent("feedback");
 
-  // Efeito para aplicar o tamanho da fonte
+  //Efeito para aplicar o tamanho da fonte no elemento raiz html
+  //Atualiza a propriedade fontSize do documentElement quando o estado muda
+  
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
     return () => {
@@ -749,26 +786,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [fontSize]);
 
-  // Efeito para aplicar o cursor personalizado
-  useEffect(() => {
-    const body = document.body;
-    
-    // Remover classes anteriores
-    body.classList.remove("cursor-dark", "cursor-light");
-    
-    // Aplicar nova classe baseada no cursorType
-    if (cursorType === "escuro") {
-      body.classList.add("cursor-dark");
-    } else if (cursorType === "claro") {
-      body.classList.add("cursor-light");
-    }
-    
-    return () => {
-      body.classList.remove("cursor-dark", "cursor-light");
-    };
-  }, [cursorType]);
-
-  // Efeito para aplicar o brilho/contraste
+  //Efeito para aplicar brilho/contraste personalizado
   useEffect(() => {
     if (customContrast !== 50) {
       // Converter para valor de brightness (50 = 1.0, 100 = 2.0, 0 = 0.0)
@@ -783,7 +801,9 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [customContrast]);
 
-  // Efeito para navegação por teclado
+  //Efeito para ativar/desativar navegação por teclado
+  //Verifica se a tool2 está ativa e aplica a classe correspondente
+
   useEffect(() => {
     const isKeyboardNavActive = activeTools.includes("tool2");
     if (isKeyboardNavActive) {
@@ -797,6 +817,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     };
   }, [activeTools]);
 
+  // Valor do contexto que será disponibilizado para os consumidores
   const value: AccessibilityContextState = {
     language,
     setLanguage,
@@ -830,5 +851,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Tipos auxiliares para as traduções
 export type TranslationKey = keyof typeof translations['pt-BR'];
 export type Language = 'pt-BR' | 'en-US';

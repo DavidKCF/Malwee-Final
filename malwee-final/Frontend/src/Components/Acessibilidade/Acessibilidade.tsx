@@ -15,10 +15,17 @@ import {
 } from '@mlw-packages/react-components';
 import { useTheme } from "../../theme/ThemeContext";
 
+//Componente Modal para feedback de acessibilidade
+//Gerencia o estado do texto de feedback e submissão do formulário
+ 
 const AcessibilityModal: React.FC = () => {
+  // Obtém funções e estado do contexto de acessibilidade
   const { modalContent, setModalContent, t } = useAccessibility();
+  // Estado local para o texto do feedback
   const [feedbackText, setFeedbackText] = useState("");
 
+  //Manipula o envio do formulário de feedback
+  //Previne comportamento padrão, loga o feedback, limpa o campo e fecha o modal/
   const handleFeedbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Feedback enviado:", feedbackText);
@@ -35,6 +42,7 @@ const AcessibilityModal: React.FC = () => {
           {t("modalFeedbackText")}
         </ModalDescriptionBase>
 
+        {/* Formulário de feedback */}
         <form onSubmit={handleFeedbackSubmit}>
           <div className="mb-4">
             <LabelBase htmlFor="feedback-textarea">
@@ -52,6 +60,7 @@ const AcessibilityModal: React.FC = () => {
           </div>
 
           <ModalFooterBase>
+            {/* Botão cancelar - fecha o modal sem enviar */}
             <ButtonBase
               type="button"
               variant="secondary"
@@ -59,6 +68,7 @@ const AcessibilityModal: React.FC = () => {
             >
               {t("cancel")}
             </ButtonBase>
+            {/* Botão enviar - submete o formulário */}
             <ButtonBase type="submit">
               {t("modalFeedbackSubmit")}
             </ButtonBase>
@@ -69,7 +79,10 @@ const AcessibilityModal: React.FC = () => {
   );
 };
 
+//Renderiza a interface completa de configurações de acessibilidade
+//Inclui controles para idioma, brilho, tamanho da fonte, tema e feedback
 export const Acessibilidade: React.FC = () => {
+  // Obtém estados e funções do contexto de acessibilidade
   const {
     language,
     setLanguage,
@@ -85,6 +98,7 @@ export const Acessibilidade: React.FC = () => {
     handleSendFeedback,
   } = useAccessibility();
 
+  // Obtém tema e função para alternar tema do contexto de tema
   const { theme, toggleTheme } = useTheme();
 
   // Opções para o Combobox de idioma
@@ -95,6 +109,7 @@ export const Acessibilidade: React.FC = () => {
 
   return (
     <main className="flex flex-col min-h-screen md:ml-[80px] ml-0 bg-[var(--surface)] text-[var(--text)] px-4 overflow-x-hidden">
+      {/* Cabeçalho da página */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">{t("malweeGroup")}</h1>
         <p className="text-[var(--text-muted)] text-lg">
@@ -105,6 +120,7 @@ export const Acessibilidade: React.FC = () => {
         </p>
       </header>
 
+      {/* Seção principal de configurações */}
       <section className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 shadow-md">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex-1 max-w-[200px]">
@@ -121,6 +137,7 @@ export const Acessibilidade: React.FC = () => {
             />
           </div>
 
+          {/* Botão para resetar todas as configurações */}
           <div className="flex gap-4">
             <ButtonBase
               variant="ghost"
@@ -134,37 +151,11 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        <h2 className="text-lg font-semibold mb-4 text-[var(--text)]">
+        <h2 className="text-lg text-center font-semibold mb-4 text-[var(--text)]">
           {t("toolsTitle")}
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {toolKeys.map((toolKey) => {
-            const label = t(toolKey);
-            const isActive = activeTools.includes(toolKey);
-            return (
-              <ButtonBase
-                key={toolKey}
-                onClick={() => handleToggleTool(toolKey)}
-                variant={isActive ? "default" : "outline"}
-                className={`flex flex-col items-center justify-center p-6 h-auto min-h-[120px] ${
-                  isActive
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--surface)] text-[var(--text)] border-[var(--border)]"
-                }`}
-                aria-pressed={isActive}
-              >
-                <i
-                  className={`ri-tools-line text-3xl mb-3 ${
-                    isActive ? 'text-white' : 'text-[var(--text)]'
-                  }`}
-                ></i>
-                <p className="text-base font-medium">{label}</p>
-              </ButtonBase>
-            );
-          })}
-        </div>
-
+        {/* Seção de controle de brilho */}
         <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">{t('adjustbrightness')}</h3>
         <div className="mb-8">
           <div className="flex flex-col gap-2">
@@ -188,12 +179,16 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
+        {/* Seção de controle de conteúdo */}
         <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">{t("contentTitle")}</h3>
+        
+        {/* Controle de tamanho da fonte */}
         <div className="mb-8">
           <LabelBase htmlFor="font-size-control" className="text-sm mb-2 text-[var(--text-muted)] block">
             {t("fontSize")}
           </LabelBase>
           <div className="flex items-center gap-3" id="font-size-control">
+            {/* Botão para diminuir tamanho da fonte */}
             <ButtonBase
               variant="outline"
               size="icon"
@@ -202,9 +197,11 @@ export const Acessibilidade: React.FC = () => {
             >
               -
             </ButtonBase>
+            {/* Display do tamanho atual da fonte */}
             <span className="text-sm text-[var(--text)] w-10 text-center" aria-live="polite">
               {fontSize}px
             </span>
+            {/* Botão para aumentar tamanho da fonte */}
             <ButtonBase
               variant="outline"
               size="icon"
@@ -216,7 +213,6 @@ export const Acessibilidade: React.FC = () => {
           </div>
         </div>
 
-        {/* Botões de Tema */}
         <div className="mb-8">
           <LabelBase className="text-sm mb-2 text-[var(--text-muted)] block">
             {t("theme")}
@@ -295,7 +291,6 @@ export const Acessibilidade: React.FC = () => {
 
         <Footer />
       </section>
-
       <AcessibilityModal />
     </main>
   );

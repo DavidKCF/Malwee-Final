@@ -29,8 +29,6 @@ export const Usuario: React.FC = () => {
   const initialData: UserData = {
     login: "",
     nome: "",
-    celular: "(21) 98664-8888",
-    telefone: "(21) 3215-8788",
     prestador: "notProvider",
   };
 

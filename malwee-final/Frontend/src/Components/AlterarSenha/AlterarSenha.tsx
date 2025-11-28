@@ -86,14 +86,12 @@ export const AlterarSenha: React.FC = () => {
               <p className="mt-2 text-lg text-[var(--text)]">Grupo Malwee</p>
             </header>
 
-            {/* Exibir mensagem de erro se houver */}
             {erro && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm text-center">
                 {erro}
               </div>
             )}
 
-            {/* Exibir mensagem de sucesso se houver */}
             {sucesso && (
               <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm text-center">
                 {sucesso}
