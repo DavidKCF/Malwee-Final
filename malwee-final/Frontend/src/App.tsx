@@ -1,9 +1,7 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "../../Frontend/src/theme/ThemeContext";
-// Importe o hook de tradução
 import { useAccessibility } from "../../Frontend/src/Components/Acessibilidade/AccessibilityContext";
-
 import { Home } from "./Components/Home/Home";
 import { Dashboard } from "./Components/DashBoard/Dashboard";
 import { Sidebar } from "./Components/Sidebar/Sidebar";

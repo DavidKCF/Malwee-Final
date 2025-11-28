@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate em vez de Link para redirecionar após o sucesso
-import { InputBase } from '@mlw-packages/react-components'; // Mantendo seu componente
-// Removi Link e ButtonBase pois vamos usar button nativo ou lógica de navegação
+import { useNavigate } from "react-router-dom"; 
+import { InputBase } from '@mlw-packages/react-components'; 
 
+//componente de Login
 export const Login: React.FC = () => {
   const navigate = useNavigate();
 
@@ -17,16 +17,18 @@ export const Login: React.FC = () => {
     setErro("");
     setLoading(true);
 
+    //limpando os dados antigos
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('usuario');
 
     try {
-      // Altere a URL abaixo se sua API estiver em outra porta ou IP
+      //envia requisição para o backend
       const response = await fetch('http://localhost:3000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+         // Envia o email e senha no corpo
         body: JSON.stringify({ email, senha }),
       });
 
@@ -51,10 +53,10 @@ export const Login: React.FC = () => {
     }
   };
 
+  //tela de Login
   return (
     <div className="flex flex-col min-h-screen bg-[var(--surface)] text-[var(--text)]">
       <main className="flex flex-1">
-        {/* Form Section */}
         <div className="w-full md:w-1/2 flex justify-center items-center px-6 py-10">
           <section className="rounded-xl p-8 shadow-md w-full max-w-md">
             <header className="mb-8 text-center">
@@ -65,18 +67,15 @@ export const Login: React.FC = () => {
               </h2>
             </header>
 
-            {/* Exibir mensagem de erro se houver */}
             {erro && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm text-center">
                 {erro}
               </div>
             )}
 
-            {/* Adicionei a tag form para permitir envio com 'Enter' */}
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                {/* Assumindo que InputBase aceita props padrão de input. 
-                    Se não aceitar, troque por um <input> padrão */}
+                
                 <InputBase
                   id='email'
                   label='E-mail'
@@ -110,7 +109,6 @@ export const Login: React.FC = () => {
               </div>
 
               <div className="mt-6 space-y-4">
-                {/* Botão de Submit */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -123,7 +121,7 @@ export const Login: React.FC = () => {
 
                 <div className="text-center">
                   <a
-                    href="/registro" // Ajuste conforme sua rota de registro
+                    href="/registro" 
                     className="text-[var(--accent)] hover:underline"
                   >
                     Criar conta
@@ -134,7 +132,6 @@ export const Login: React.FC = () => {
           </section>
         </div>
 
-        {/* Imagem Lateral (Mantida igual) */}
         <div className="hidden md:flex md:w-1/2 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface)] via-[var(--surface)]/70 to-transparent z-10"></div>
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--surface)] via-[var(--surface)]/50 to-transparent z-20"></div>

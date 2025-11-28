@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, {
   createContext,
   useContext,
@@ -9,6 +10,9 @@ import React, {
   ReactNode,
 } from "react";
 
+// Objeto principal contendo traduções para cada idioma suportado.
+// "pt-BR" = Português do Brasil
+// "en-US" = Inglês Americano
 const translations = {
   "pt-BR": {
     selectLanguage: "Selecionar Idioma",

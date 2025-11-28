@@ -2,15 +2,14 @@ import React from "react";
 import MalweeLogo from "../../image/logo.png";
 import { Footer } from "../Footer/Footer";
 import { Graficos } from "../Graficos/Graficos";
-import { Link } from "react-router-dom";
-import { useAccessibility } from "../Acessibilidade/AccessibilityContext";
+import { Link } from "react-router-dom"; 
+import { useAccessibility } from "../Acessibilidade/AccessibilityContext"; //Hook de Acessibilidade
 
 export const Home: React.FC = () => {
-  const { t } = useAccessibility();
+  const { t } = useAccessibility(); //Retorna os textos traduzidos 
 
   return (
     <main className="flex flex-col min-h-screen ml-[80px] bg-[var(--surface)] text-[var(--text)]">
-      {/* Header */}
       <header className="mb-8">
         <div className="flex justify-between items-center w-full">
           <div>
@@ -64,7 +63,7 @@ export const Home: React.FC = () => {
         </a>
       </section>
 
-      <Graficos />
+      <Graficos /> 
 
       <Footer />
     </main>

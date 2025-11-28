@@ -176,7 +176,7 @@ export const AlterarSenha: React.FC = () => {
           </section>
         </div>
 
-        {/* Imagem Lateral */}
+ 
         <div className="hidden md:flex md:w-1/2 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface)] via-[var(--surface)]/70 to-transparent z-10"></div>
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--surface)] via-[var(--surface)]/50 to-transparent z-20"></div>

@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../image/logo.png";
 import { useTheme } from "../../theme/ThemeContext";
-import { useAccessibility } from "../Acessibilidade/AccessibilityContext"; // CAMINHO CORRETO
+import { useAccessibility } from "../Acessibilidade/AccessibilityContext"; 
 
 export const Sidebar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
